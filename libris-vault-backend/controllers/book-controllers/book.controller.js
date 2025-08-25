@@ -335,9 +335,6 @@ exports.uploadBookByISBN = async (req, res) => {
   session.startTransaction();
   try {
     const { isbn, price, stock, genre, language } = req.body;
-    console.log("📥 ISBN request body:", req.body);
-    console.log("🖼 Files received:", req.files);
-
     if (!isbn) {
       await session.abortTransaction();
       session.endSession();
@@ -357,51 +354,136 @@ exports.uploadBookByISBN = async (req, res) => {
     }
 
     let bookData = {};
-    try {
-      const response = await axios.get(
-        `https://openlibrary.org/isbn/${isbn}.json`
-      );
-      bookData = response.data;
-      console.log("📚 Open Library data:", bookData);
-    } catch (e) {
-      console.log("❌ Open Library failed, trying Google Books...");
-      try {
-        const googleResponse = await axios.get(
-          `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
-        );
-        if (googleResponse.data.items && googleResponse.data.items.length > 0) {
-          const info = googleResponse.data.items[0].volumeInfo;
-          bookData.title = info.title;
-          bookData.description = info.description;
-          bookData.publish_date = info.publishedDate;
-          bookData.publishers = info.publisher ? [info.publisher] : [];
-          bookData.number_of_pages = info.pageCount;
-          if (info.authors && info.authors.length > 0)
-            bookData.authors = info.authors;
-          if (info.language) bookData.language = info.language.toUpperCase();
-        }
-      } catch (googleError) {
-        console.error("❌ Google Books also failed:", googleError.message);
-      }
+    let sourceUsed = "none";
+
+    const openLibrary = axios
+      .get(`https://openlibrary.org/isbn/${isbn}.json`)
+      .catch(() => null);
+    const googleBooks = axios
+      .get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
+      .catch(() => null);
+    const olSearch = axios
+      .get(`https://openlibrary.org/search.json?q=isbn:${isbn}`)
+      .catch(() => null);
+
+    const [olRes, googleRes, olSearchRes] = await Promise.all([
+      openLibrary,
+      googleBooks,
+      olSearch,
+    ]);
+
+    if (olRes && olRes.data && olRes.data.title) {
+      bookData = olRes.data;
+      sourceUsed = "Open Library";
+    }
+    if (
+      (!bookData.title || !bookData.authors) &&
+      googleRes &&
+      googleRes.data.items &&
+      googleRes.data.items.length > 0
+    ) {
+      const info = googleRes.data.items[0].volumeInfo;
+      bookData = {
+        ...bookData,
+        title: bookData.title || info.title,
+        description: bookData.description || info.description,
+        publish_date: bookData.publish_date || info.publishedDate,
+        publishers:
+          bookData.publishers || (info.publisher ? [info.publisher] : []),
+        number_of_pages: bookData.number_of_pages || info.pageCount,
+        authors: bookData.authors || info.authors,
+        language: bookData.language || info.language,
+        categories: bookData.categories || info.categories,
+      };
+      sourceUsed =
+        sourceUsed === "none" ? "Google Books" : sourceUsed + "+Google";
+    }
+    if (
+      (!bookData.title || !bookData.authors) &&
+      olSearch &&
+      olSearch.data.docs &&
+      olSearch.data.docs.length > 0
+    ) {
+      const doc = olSearch.data.docs[0];
+      bookData = {
+        ...bookData,
+        title: bookData.title || doc.title,
+        publish_date:
+          bookData.publish_date ||
+          (doc.first_publish_year ? doc.first_publish_year.toString() : ""),
+        publishers:
+          bookData.publishers || (doc.publisher ? [doc.publisher[0]] : []),
+        number_of_pages: bookData.number_of_pages || doc.number_of_pages,
+        authors: bookData.authors || doc.author_name,
+        language: bookData.language || doc.language,
+        subjects: bookData.subjects || doc.subject,
+      };
+      sourceUsed =
+        sourceUsed === "none"
+          ? "Open Library Search"
+          : sourceUsed + "+OpenSearch";
     }
 
     const title = bookData.title || "Unknown Title";
+
     let author = "Unknown Author";
     if (bookData.authors && bookData.authors.length > 0) {
-      if (typeof bookData.authors[0] === "object" && bookData.authors[0].key) {
-        try {
-          const authorResponse = await axios.get(
-            `https://openlibrary.org${bookData.authors[0].key}.json`
-          );
-          author = authorResponse.data.name || "Unknown Author";
-        } catch (authorError) {
-          console.error("Error fetching author details:", authorError);
-          author = "Unknown Author";
+      const firstAuthor = bookData.authors[0];
+      if (typeof firstAuthor === "object") {
+        if (firstAuthor.name) {
+          author = firstAuthor.name;
+        } else if (firstAuthor.key) {
+          try {
+            const authorResponse = await axios.get(
+              `https://openlibrary.org${firstAuthor.key}.json`
+            );
+            author = authorResponse.data.name || "Unknown Author";
+          } catch {
+            author = "Unknown Author";
+          }
         }
-      } else {
-        author = bookData.authors[0];
+      } else if (typeof firstAuthor === "string") {
+        author = cleanAuthorName(firstAuthor);
       }
-    } else if (bookData.by_statement) author = bookData.by_statement;
+    } else if (bookData.by_statement) {
+      author = cleanAuthorName(bookData.by_statement);
+    } else if (bookData.author_name && bookData.author_name.length > 0) {
+      author = cleanAuthorName(bookData.author_name[0]);
+    } else if (bookData.contributors && bookData.contributors.length > 0) {
+      const firstContributor = bookData.contributors[0];
+      author = cleanAuthorName(
+        typeof firstContributor === "object"
+          ? firstContributor.name
+          : firstContributor
+      );
+    } else if (bookData.creator) {
+      if (Array.isArray(bookData.creator)) {
+        author = cleanAuthorName(
+          typeof bookData.creator[0] === "object"
+            ? bookData.creator[0].name
+            : bookData.creator[0]
+        );
+      } else if (typeof bookData.creator === "object") {
+        author = cleanAuthorName(bookData.creator.name || "Unknown Author");
+      } else {
+        author = cleanAuthorName(bookData.creator);
+      }
+    }
+    if (typeof author !== "string") {
+      try {
+        author = JSON.stringify(author);
+      } catch {
+        author = "Unknown Author";
+      }
+    }
+    if (author === "Unknown Author" && title !== "Unknown Title") {
+      const byIndex = title.toLowerCase().lastIndexOf(" by ");
+      if (byIndex !== -1) {
+        author = cleanAuthorName(title.substring(byIndex + 4).trim());
+      } else {
+        author = "Various Authors";
+      }
+    }
 
     let description = "No description available";
     if (bookData.description) {
@@ -415,12 +497,32 @@ exports.uploadBookByISBN = async (req, res) => {
       }
     }
 
-    const publicationYear = bookData.publish_date || "Unknown";
-    const publisher = bookData.publishers
-      ? bookData.publishers[0]
-      : "Unknown Publisher";
-    const pages = bookData.number_of_pages || 0;
-    const bookLanguage = bookData.language || language || "ENGLISH";
+    const publicationYear =
+      bookData.publish_date ||
+      bookData.publishedDate ||
+      bookData.first_publish_year ||
+      "Unknown";
+    const publisher =
+      (bookData.publishers && bookData.publishers[0]) ||
+      bookData.publisher ||
+      "Unknown Publisher";
+    const pages = bookData.number_of_pages || bookData.pages || 0;
+    const bookLanguage =
+      bookData.language ||
+      language ||
+      (bookData.language && bookData.language[0]) ||
+      "ENGLISH";
+
+    let genres = ["General"];
+    if (genre) {
+      genres = genre.split(",").map((g) => g.trim());
+    } else if (bookData.genres && bookData.genres.length > 0) {
+      genres = bookData.genres;
+    } else if (bookData.categories && bookData.categories.length > 0) {
+      genres = bookData.categories;
+    } else if (bookData.subjects && bookData.subjects.length > 0) {
+      genres = bookData.subjects.slice(0, 3);
+    }
 
     if (!req.files || !req.files.bookCover) {
       await session.abortTransaction();
@@ -436,24 +538,34 @@ exports.uploadBookByISBN = async (req, res) => {
       "bookCover"
     );
 
+    const languageMap = {
+      en: "ENGLISH",
+    };
+
+    function normalizeLanguage(lang) {
+      if (!lang) return "ENGLISH";
+      const lower = lang.toString().toLowerCase();
+      return languageMap[lower] || "ENGLISH";
+    }
+
     const book = new Book({
       bookCover: cloudinaryResult.url,
       title,
-      author,
+      author: author.substring(0, 255),
       price: parseFloat(price) || 0,
       stock: parseInt(stock) || 0,
       isbn,
-      language: bookLanguage,
+      language: normalizeLanguage(bookLanguage),
       description,
-      genre: genre ? genre.split(",").map((g) => g.trim()) : ["General"],
-      publicationYear,
+      genre: genres,
+      publicationYear: publicationYear.toString(),
       publisher,
       pages,
       seller: req.user.id,
+      dataSource: sourceUsed,
     });
 
     await book.save({ session });
-
     await Seller.updateOne(
       { _id: req.user.id, inventory: null },
       { $set: { inventory: [] } },
@@ -468,20 +580,34 @@ exports.uploadBookByISBN = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    if (book.stock === 0)
-      console.log(`🚨 Book "${book.title}" is OUT OF STOCK!`);
-    else if (book.stock <= (book.lowStockThreshold || 5))
-      console.log(`⚠️ Book "${book.title}" is LOW ON STOCK: ${book.stock}`);
-
     return res.status(200).json({
       success: true,
       message: "Book added successfully using ISBN",
       book,
     });
   } catch (error) {
-    console.error("🔥 Error uploading book by ISBN:", error.message);
     await session.abortTransaction();
     session.endSession();
-    return res.status(500).json({ success: false, message: "Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
   }
 };
+
+function cleanAuthorName(author) {
+  if (typeof author !== "string") return author;
+  author = author.replace(/,\s*\d{4}[-–]\d{4}\.?/g, "");
+  author = author.replace(/,\s*\d{4}[-–]?\s*(?:present|current)?\.?/g, "");
+  author = author.replace(/,\s*b\.\s*\d{4}\.?/g, "");
+  author = author.replace(/[,.\s]+$/, "");
+  author = author.replace(/\s+/g, " ").trim();
+  const commaIndex = author.indexOf(",");
+  if (commaIndex > -1) {
+    const lastName = author.substring(0, commaIndex).trim();
+    const firstName = author.substring(commaIndex + 1).trim();
+    if (firstName && lastName) {
+      author = `${firstName} ${lastName}`;
+    }
+  }
+  return author;
+}

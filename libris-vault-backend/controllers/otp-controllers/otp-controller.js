@@ -6,6 +6,7 @@ const {
   removeOTP,
 } = require("../../utilities/otp/otp.utility");
 const Seller = require("../../models/seller.models/seller-model");
+const { sendOTPEmail } = require("../../helpers/email-helper/email.helper");
 
 let verifiedSellerPhones = new Set();
 exports.verifiedSellerPhones = verifiedSellerPhones;
@@ -17,7 +18,10 @@ exports.verifiedSellerPhones = verifiedSellerPhones;
  */
 exports.sendSellerOTP = async (req, res) => {
   try {
+    console.log("📩 Incoming request to sendSellerOTP");
     const { phone } = req.body;
+
+    console.log("➡️ Phone received from request body:", phone);
 
     if (!phone) {
       return res
@@ -25,7 +29,25 @@ exports.sendSellerOTP = async (req, res) => {
         .json({ success: false, message: "Phone number is required" });
     }
 
+    // Find seller by phone
+    const seller = await Seller.findOne({ phone });
+    console.log("🔍 Seller lookup result:", seller ? "Found" : "Not Found");
+
+    if (!seller) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Seller not found" });
+    }
+
+    if (!seller.email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Seller does not have an email" });
+    }
+
+    // Check resend limit
     if (!canResendOTP(phone)) {
+      console.warn("🚫 OTP resend limit reached for phone:", phone);
       return res.status(429).json({
         success: false,
         message:
@@ -33,16 +55,34 @@ exports.sendSellerOTP = async (req, res) => {
       });
     }
 
+    // Generate OTP
     const otp = generateOTP();
+    console.log("🔑 Generated OTP:", otp);
+
+    // Store OTP against phone (identifier)
     storeOTP(phone, otp);
+    console.log("💾 OTP stored for phone:", phone);
+
+    // Send OTP to seller’s Gmail
+    console.log("📧 Sending OTP email to:", seller.email);
+    const sent = await sendOTPEmail(seller.email, otp);
+
+    if (!sent) {
+      console.error("❌ Failed to send OTP email to:", seller.email);
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to send OTP email" });
+    }
+
+    console.log("✅ OTP email sent successfully to:", seller.email);
 
     res.status(200).json({
       success: true,
-      message: "OTP sent successfully",
-      otp,
+      message: "OTP sent successfully to your registered email!",
+      // otp, // ⚠️ Uncomment only for testing
     });
   } catch (err) {
-    console.error("❌ Error sending Seller OTP:", err);
+    console.error("❌ Error in sendSellerOTP handler:", err);
     res
       .status(500)
       .json({ success: false, message: "Server error while sending OTP" });
