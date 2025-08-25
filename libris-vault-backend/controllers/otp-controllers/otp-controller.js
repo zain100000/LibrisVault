@@ -29,7 +29,6 @@ exports.sendSellerOTP = async (req, res) => {
         .json({ success: false, message: "Phone number is required" });
     }
 
-    // Find seller by phone
     const seller = await Seller.findOne({ phone });
     console.log("🔍 Seller lookup result:", seller ? "Found" : "Not Found");
 
@@ -45,7 +44,6 @@ exports.sendSellerOTP = async (req, res) => {
         .json({ success: false, message: "Seller does not have an email" });
     }
 
-    // Check resend limit
     if (!canResendOTP(phone)) {
       console.warn("🚫 OTP resend limit reached for phone:", phone);
       return res.status(429).json({
@@ -55,15 +53,12 @@ exports.sendSellerOTP = async (req, res) => {
       });
     }
 
-    // Generate OTP
     const otp = generateOTP();
     console.log("🔑 Generated OTP:", otp);
 
-    // Store OTP against phone (identifier)
     storeOTP(phone, otp);
     console.log("💾 OTP stored for phone:", phone);
 
-    // Send OTP to seller’s Gmail
     console.log("📧 Sending OTP email to:", seller.email);
     const sent = await sendOTPEmail(seller.email, otp);
 
@@ -78,8 +73,7 @@ exports.sendSellerOTP = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "OTP sent successfully to your registered email!",
-      // otp, // ⚠️ Uncomment only for testing
+      message: "OTP sent successfull, please check your email",
     });
   } catch (err) {
     console.error("❌ Error in sendSellerOTP handler:", err);
