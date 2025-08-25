@@ -1,0 +1,121 @@
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+require("dotenv").config();
+
+const { securityMiddleware } = require("./middlewares/security.middleware");
+
+const app = express();
+
+securityMiddleware(app);
+app.use(cookieParser());
+app.use(express.json({ limit: "20kb" }));
+app.use(express.urlencoded({ extended: true, limit: "20kb" }));
+
+const corsOptions = {
+  origin:
+    process.env.ALLOWED_ORIGINS === "*"
+      ? true
+      : process.env.ALLOWED_ORIGINS.split(","),
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    process.env.ALLOWED_ORIGINS || "*"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Content-Type-Options"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, DELETE, OPTIONS"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  next();
+});
+
+// ==================== BASE API ROUTES ====================
+const superAdminRoute = require("./routes/super-admin-routes/super-admin.route.js");
+const sellerRoute = require("./routes/seller-routes/seller.route.js");
+const otpRoute = require("./routes/otp-routes/otp-route.js");
+const inventoryRoute = require("./routes/book-routes/book.route.js");
+const storeRoute = require("./routes/store-routes/store-route.js");
+
+// ==================== API MIDDLEWARES ====================
+app.use("/api/super-admin", superAdminRoute);
+app.use("/api/seller", sellerRoute);
+app.use("/api/otp", otpRoute);
+app.use("/api/inventory", inventoryRoute);
+app.use("/api/store", storeRoute);
+
+// ==================== SERVER MIDDLEWARES ====================
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Server is running healthy",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "API endpoint not found" });
+});
+
+app.use((error, req, res, next) => {
+  console.error("Unhandled Error:", error);
+  const message =
+    process.env.NODE_ENV === "development"
+      ? "Something went wrong"
+      : error.message;
+  res.status(error.status || 500).json({
+    success: false,
+    message,
+    ...(process.env.NODE_ENV !== "production" && { stack: error.stack }),
+  });
+});
+
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  })
+  .then(() => {
+    console.log("Connected to MongoDB successfully!");
+    app.listen(process.env.PORT, () => {
+      console.log(`Server is running on port ${process.env.PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+    process.exit(1);
+  });
+
+process.on("SIGINT", () => {
+  console.log("SIGINT received. Shutting down gracefully");
+  mongoose.connection.close(() => {
+    console.log("MongoDB connection closed");
+    process.exit(0);
+  });
+});
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received. Shutting down gracefully");
+  mongoose.connection.close(() => {
+    console.log("MongoDB connection closed");
+    process.exit(0);
+  });
+});
+
+module.exports = app;

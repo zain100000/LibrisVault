@@ -1,0 +1,44 @@
+{
+  "name": "libris-vault-backend",
+  "version": "1.0.0",
+  "description": "Node.js backend powers a localized bookstore management system for Pakistan, supporting three user roles: Super Admin, Seller, and User. It handles user authentication, book inventory management, order processing, payments integration (JazzCash/Easypaisa), and analytics. The backend provides RESTful APIs for managing books, sellers, orders, promotions, and reviews, while supporting features like bulk book uploads, ISBN-based metadata retrieval, and multilingual (Urdu/English) data handling. Scalable and modular, it ensures secure data management, efficient performance, and seamless interaction with frontend applications.",
+  "keywords": [
+    "LibrisVault",
+    "Backend",
+    "Bookstore",
+    "NodeJS"
+  ],
+  "license": "ISC",
+  "author": "zain100000",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cloudinary": "^2.7.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.18.0",
+    "multer": "^2.0.2",
+    "xss-clean": "^0.1.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
+  }
+}
