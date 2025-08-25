@@ -72,19 +72,6 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: "API endpoint not found" });
 });
 
-app.use((error, req, res, next) => {
-  console.error("Unhandled Error:", error);
-  const message =
-    process.env.NODE_ENV === "development"
-      ? "Something went wrong"
-      : error.message;
-  res.status(error.status || 500).json({
-    success: false,
-    message,
-    ...(process.env.NODE_ENV !== "production" && { stack: error.stack }),
-  });
-});
-
 mongoose
   .connect(process.env.MONGODB_URI, {
     serverSelectionTimeoutMS: 5000,
@@ -94,7 +81,6 @@ mongoose
     console.log("Connected to MongoDB successfully!");
     app.listen(process.env.PORT, () => {
       console.log(`Server is running on port ${process.env.PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
     });
   })
   .catch((err) => {

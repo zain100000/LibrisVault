@@ -303,7 +303,6 @@ exports.loginSeller = async (req, res) => {
 
         res.cookie("accessToken", token, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "development",
           sameSite: "strict",
           maxAge: 60 * 60 * 1000,
         });
@@ -505,7 +504,6 @@ exports.logoutSeller = async (req, res, next) => {
 
     res.clearCookie("accessToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "development",
       sameSite: "strict",
     });
 
