@@ -4,10 +4,10 @@ const {
   sendPromotionEmail,
 } = require("../../helpers/email-helper/email.helper");
 
-// ------------------------------ SUPER ADMIN FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN FUNCTIONS  ----------------------------------
+//------------------------------ SUPER ADMIN FUNCTIONS  ----------------------------------
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 /**
  * @desc Super Admin creates a system-wide promotion
@@ -105,7 +105,7 @@ exports.getActiveSystemWidePromotion = async (req, res) => {
       samplePrice: samplePrice ?? null,
     });
   } catch (error) {
-    console.error("Error fetching active system-wide promotion:", error);
+    console.error("❌ Error fetching active system-wide promotion:", error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
@@ -118,7 +118,7 @@ exports.getActiveSystemWidePromotion = async (req, res) => {
 exports.reviewSellerPromotion = async (req, res) => {
   try {
     const { id } = req.params;
-    const { action } = req.body; // APPROVE or REJECT
+    const { action } = req.body;
 
     const promotion = await Promotion.findById(id);
     if (!promotion) {
@@ -135,9 +135,8 @@ exports.reviewSellerPromotion = async (req, res) => {
     }
 
     if (action === "APPROVE") {
-      promotion.status = "ACTIVE"; // ✅ activate
+      promotion.status = "ACTIVE";
 
-      // Add to seller’s promotions array
       await Seller.findByIdAndUpdate(
         promotion.sellerId,
         { $addToSet: { promotions: promotion._id } },
@@ -146,7 +145,6 @@ exports.reviewSellerPromotion = async (req, res) => {
 
       await promotion.save();
 
-      // 📧 Notify all users about the approved promotion
       const users = await Seller.find({}, "email");
       for (const user of users) {
         await sendPromotionEmail(user.email, promotion);
@@ -158,7 +156,7 @@ exports.reviewSellerPromotion = async (req, res) => {
         promotion,
       });
     } else if (action === "REJECT") {
-      promotion.status = "REJECTED"; // ✅ rejected if not approved
+      promotion.status = "REJECTED";
       await promotion.save();
 
       return res.json({
@@ -177,10 +175,10 @@ exports.reviewSellerPromotion = async (req, res) => {
   }
 };
 
-// ------------------------------ SELLER FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER FUNCTIONS  ----------------------------------
+//------------------------------ SELLER FUNCTIONS ----------------------------------
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
 
 exports.createSellerPromotion = async (req, res) => {
   try {
@@ -202,7 +200,7 @@ exports.createSellerPromotion = async (req, res) => {
       endDate,
       applicableBooks,
       scope: "SELLER_SPECIFIC",
-      status: "INACTIVE", // seller cannot activate directly
+      status: "INACTIVE",
     });
 
     await promotion.save();

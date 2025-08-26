@@ -9,9 +9,9 @@ const {
 } = require("../../utilities/promotion/promotion.utility");
 
 // ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
+// ------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------
 
 /**
  * @description Controller to add a new book
@@ -23,9 +23,7 @@ exports.uploadBook = async (req, res) => {
   session.startTransaction();
 
   try {
-    // SELLER check
     if (!req.user || req.user.role !== "SELLER") {
-      console.log("❌ Unauthorized update attempt");
       return res.status(403).json({
         success: false,
         message: "Unauthorized! only seller can update books.",
@@ -88,9 +86,9 @@ exports.uploadBook = async (req, res) => {
     session.endSession();
 
     if (book.stock === 0) {
-      console.log(`🚨 Book "${book.title}" is OUT OF STOCK!`);
+      console.error(`🚨 Book "${book.title}" is OUT OF STOCK!`);
     } else if (book.stock <= (book.lowStockThreshold || 5)) {
-      console.log(`⚠️ Book "${book.title}" is LOW ON STOCK: ${book.stock}`);
+      console.error(`⚠️ Book "${book.title}" is LOW ON STOCK: ${book.stock}`);
     }
 
     res.status(201).json({
@@ -101,7 +99,7 @@ exports.uploadBook = async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.error("Error adding book:", error);
+    console.error("❌ Error adding book:", error);
 
     if (error.code === 11000 && error.keyPattern?.isbn) {
       return res.status(409).json({
@@ -122,7 +120,6 @@ exports.uploadBook = async (req, res) => {
  * @route GET api/inventory/book/get-all-books
  * @access Public
  */
-
 exports.getAllBooks = async (req, res) => {
   try {
     let books = await Book.find().populate("seller");
@@ -148,7 +145,6 @@ exports.getAllBooks = async (req, res) => {
         })
       );
     } else if (activeSellerPromos && activeSellerPromos.length > 0) {
-      // Apply seller-specific promotions
       books = await Promise.all(
         books.map(async (book) => {
           const promo = activeSellerPromos.find(
@@ -175,7 +171,6 @@ exports.getAllBooks = async (req, res) => {
         })
       );
     } else {
-      // No active promotions at all → reset
       books = await Promise.all(
         books.map(async (book) => {
           book.discountedPrice = null;
@@ -220,7 +215,7 @@ exports.getBookById = async (req, res) => {
       book: books,
     });
   } catch (err) {
-    console.error("Error:", err);
+    console.error("❌ Error Getting Book:", err);
     return res.status(500).json({
       success: false,
       message: "Error Getting Book!",
@@ -230,17 +225,11 @@ exports.getBookById = async (req, res) => {
 
 /**
  * @description Controller to update a book by ID
- * @route PUT api/inventory/book/update-book/:id
+ * @route PATCH api/inventory/book/update-book/:id
  * @access Private (Seller)
  */
 exports.updateBook = async (req, res) => {
   try {
-    console.log("=== UPDATE BOOK START ===");
-    console.log("User:", req.user);
-    console.log("Params:", req.params);
-    console.log("Body (raw):", req.body);
-    console.log("Files:", req.files);
-
     if (!req.user || req.user.role !== "SELLER") {
       return res.status(403).json({
         success: false,
@@ -307,9 +296,9 @@ exports.updateBook = async (req, res) => {
 
     if (updates.stock !== undefined) {
       if (updatedBook.stock === 0) {
-        console.log(`🚨 Book "${updatedBook.title}" is OUT OF STOCK!`);
+        console.error(`🚨 Book "${updatedBook.title}" is OUT OF STOCK!`);
       } else if (updatedBook.stock <= (updatedBook.lowStockThreshold || 5)) {
-        console.log(
+        console.error(
           `⚠️ Book "${updatedBook.title}" is LOW ON STOCK: ${updatedBook.stock}`
         );
       }
@@ -328,6 +317,7 @@ exports.updateBook = async (req, res) => {
       });
     }
 
+    console.error("❌ Error updating book:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -641,6 +631,7 @@ exports.uploadBookByISBN = async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    console.error("❌ Error uploading book by ISBN:", error);
     return res
       .status(500)
       .json({ success: false, message: "Server Error", error: error.message });

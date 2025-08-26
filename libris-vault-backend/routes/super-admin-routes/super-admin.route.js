@@ -7,10 +7,10 @@ const {
 const profilePictureUpload = require("../../utilities/cloudinary/cloudinary.utility");
 const superAdminController = require("../../controllers/super-admin-controllers/super-admin.controller");
 
-// ------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
 
 /**
  * @description Routes for Super Admin functionalities
@@ -57,10 +57,10 @@ router.post(
   superAdminController.logoutSuperAdmin
 );
 
-// ------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
 
 /**
  * @description Routes for Approving or Rejecting Seller Accounts

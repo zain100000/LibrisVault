@@ -67,12 +67,12 @@ const superAdminSchema = new mongoose.Schema(
     },
 
     sessionId: {
-      type: String, // <--- THIS is what was missing
+      type: String, //
       default: null,
     },
   },
   {
-    timestamps: true, // auto-adds createdAt & updatedAt
+    timestamps: true, 
   }
 );
 

@@ -9,7 +9,6 @@ const xss = require("xss-clean");
  * @param {Object} app - The Express application instance
  */
 exports.securityMiddleware = (app) => {
-  // Helmet for headers security
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -24,21 +23,18 @@ exports.securityMiddleware = (app) => {
     })
   );
 
-  // CORS
   app.use(
     cors({
       origin:
         process.env.ALLOWED_ORIGINS === "*"
-          ? true // allow all origins in dev
+          ? true
           : process.env.ALLOWED_ORIGINS.split(","),
       credentials: true,
     })
   );
 
-  // Prevent HTTP parameter pollution
   app.use(hpp());
 
-  // Sanitize Mongo queries safely for Express 5
   app.use(
     mongoSanitize({
       onSanitize: ({ key }) => {
@@ -48,6 +44,5 @@ exports.securityMiddleware = (app) => {
     })
   );
 
-  // Prevent XSS attacks
   app.use(xss());
 };

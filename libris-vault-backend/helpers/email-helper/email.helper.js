@@ -8,8 +8,6 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  logger: true,
-  debug: true,
 });
 
 /**
@@ -18,10 +16,6 @@ const transporter = nodemailer.createTransport({
  * @param {string} otp - OTP to send
  */
 exports.sendOTPEmail = async (toEmail, otp) => {
-  console.log("📧 Preparing to send OTP via Gmail...");
-  console.log("➡️ Target email:", toEmail);
-  console.log("➡️ OTP to send:", otp);
-
   const mailOptions = {
     from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
     to: toEmail,
@@ -40,12 +34,10 @@ exports.sendOTPEmail = async (toEmail, otp) => {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("✅ OTP email sent successfully!");
-    console.log("📄 Message ID:", info.messageId);
+    await transporter.sendMail(mailOptions);
     return true;
   } catch (err) {
-    console.error("❌ Failed to send OTP via Gmail:", err.message);
+    console.error("Failed to send OTP via Gmail:", err.message);
     return false;
   }
 };
@@ -56,10 +48,6 @@ exports.sendOTPEmail = async (toEmail, otp) => {
  * @param {object} promotion - Promotion details { title, description, startDate, endDate }
  */
 exports.sendPromotionEmail = async (toEmail, promotion) => {
-  console.log("📧 Preparing to send Promotion email...");
-  console.log("➡️ Target email:", toEmail);
-  console.log("➡️ Promotion:", promotion);
-
   const mailOptions = {
     from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
     to: toEmail,
@@ -85,12 +73,10 @@ exports.sendPromotionEmail = async (toEmail, promotion) => {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Promotion email sent successfully!");
-    console.log("📄 Message ID:", info.messageId);
+    await transporter.sendMail(mailOptions);
     return true;
   } catch (err) {
-    console.error("❌ Failed to send Promotion email:", err.message);
+    console.error("Failed to send Promotion email:", err.message);
     return false;
   }
 };

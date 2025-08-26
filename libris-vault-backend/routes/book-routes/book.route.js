@@ -4,10 +4,10 @@ const { authMiddleware } = require("../../middlewares/auth.middleware");
 const bookPictureUpload = require("../../utilities/cloudinary/cloudinary.utility");
 const bookController = require("../../controllers/book-controllers/book.controller");
 
-// ------------------------------ SELLER ACTION ROUTES  ----------------------------------
-// ------------------------------ SELLER ACTION ROUTES  ----------------------------------
-// ------------------------------ SELLER ACTION ROUTES  ----------------------------------
-// ------------------------------ SELLER ACTION ROUTES  ----------------------------------
+//------------------------------ SELLER ACTION ROUTES  ----------------------------------
+//------------------------------ SELLER ACTION ROUTES  ----------------------------------
+//------------------------------ SELLER ACTION ROUTES  ----------------------------------
+//------------------------------ SELLER ACTION ROUTES  ----------------------------------
 
 /**
  * @description Route to upload a new book

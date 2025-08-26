@@ -10,9 +10,6 @@ const crypto = require("crypto");
  */
 if (!process.env.JWT_SECRET) {
   const generatedSecret = crypto.randomBytes(64).toString("hex");
-  console.warn(
-    "JWT_SECRET not set! Using generated secret for development only."
-  );
   process.env.JWT_SECRET = generatedSecret;
 }
 
@@ -22,7 +19,7 @@ if (!process.env.JWT_SECRET) {
  */
 exports.authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 3, // Limit each IP to 3 requests per windowMs
+  max: 3,
   message: {
     success: false,
     message: "Too many authentication attempts, please try again later.",
@@ -127,8 +124,6 @@ exports.authMiddleware = async (req, res, next) => {
     };
 
     req.userId = user._id.toString();
-
-    console.log(`User ${req.user.id} authenticated successfully`);
 
     next();
   } catch (error) {

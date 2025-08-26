@@ -41,7 +41,7 @@ const PromotionSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["INACTIVE", "ACTIVE", "REJECTED", "EXPIRED"],
-      default: "INACTIVE", // ✅ seller promotions start inactive
+      default: "INACTIVE", 
     },
   },
   { timestamps: true }

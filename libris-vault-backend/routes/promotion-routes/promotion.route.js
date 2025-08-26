@@ -3,10 +3,10 @@ const router = express.Router();
 const { authMiddleware } = require("../../middlewares/auth.middleware");
 const promotionController = require("../../controllers/promotion-controllers/promotion.controller");
 
-// ------------------------------ SUPER ADMIN ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN ROUTES  ----------------------------------
-// ------------------------------ SUPER ADMIN ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
+//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
 
 /**
  * @description Routes for Creating System-wide Promotions
@@ -36,10 +36,10 @@ router.patch(
   promotionController.reviewSellerPromotion
 );
 
-// ------------------------------ SELLER ROUTES  ----------------------------------
-// ------------------------------ SELLER ROUTES  ----------------------------------
-// ------------------------------ SELLER ROUTES  ----------------------------------
-// ------------------------------ SELLER ROUTES  ----------------------------------
+//------------------------------ SELLER ROUTES  ----------------------------------
+//------------------------------ SELLER ROUTES  ----------------------------------
+//------------------------------ SELLER ROUTES  ----------------------------------
+//------------------------------ SELLER ROUTES  ----------------------------------
 
 /**
  * @description Routes for Creating Seller Promotions

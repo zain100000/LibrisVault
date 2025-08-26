@@ -16,10 +16,10 @@ const {
   generateSecureToken,
 } = require("../../helpers/token-helper/token.helper");
 
-// ------------------------------ SUPER ADMIN BASE FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN BASE FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN BASE FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN BASE FUNCTIONS  ----------------------------------
+//------------------------------ SUPER ADMIN BASE FUNCTIONS  ----------------------------------
+//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 
 /**
  * @description SuperAdmin registration
@@ -27,6 +27,8 @@ const {
  * @access Public
  */
 exports.registerSuperAdmin = async (req, res) => {
+  let uploadedFileUrl = null;
+
   try {
     const { userName, email, password } = req.body;
 
@@ -51,7 +53,6 @@ exports.registerSuperAdmin = async (req, res) => {
     }
 
     let userProfileImageUrl = null;
-    let uploadedFileUrl = null;
     if (req.files?.profilePicture) {
       const uploadResult = await profilePictureUpload.uploadToCloudinary(
         req.files.profilePicture[0],
@@ -84,14 +85,11 @@ exports.registerSuperAdmin = async (req, res) => {
       message: "SuperAdmin created successfully",
     });
   } catch (error) {
-    console.error("❌ Error creating super admin:", error);
-
     if (uploadedFileUrl) {
       try {
         await profilePictureUpload.deleteFromCloudinary(uploadedFileUrl);
-        console.log("🧹 Rolled back Cloudinary upload");
       } catch (cloudErr) {
-        console.error("❌ Failed to rollback Cloudinary upload:", cloudErr);
+        console.error("Failed to rollback Cloudinary upload:", cloudErr);
       }
     }
 
@@ -102,6 +100,7 @@ exports.registerSuperAdmin = async (req, res) => {
       });
     }
 
+    console.error("Error creating super admin:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -117,13 +116,8 @@ exports.registerSuperAdmin = async (req, res) => {
 exports.loginSuperAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("📥 Login request received:", {
-      email,
-      passwordProvided: !!password,
-    });
 
     if (!email || !password) {
-      console.log("❌ Missing email or password");
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
@@ -131,13 +125,8 @@ exports.loginSuperAdmin = async (req, res) => {
     }
 
     let superadmin = await SuperAdmin.findOne({ email });
-    console.log(
-      "🔎 Found superadmin in DB:",
-      superadmin ? superadmin.email : "Not Found"
-    );
 
     if (!superadmin) {
-      console.log("❌ Invalid email");
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
@@ -145,7 +134,6 @@ exports.loginSuperAdmin = async (req, res) => {
 
     if (superadmin.lockUntil && superadmin.lockUntil > Date.now()) {
       const remaining = Math.ceil((superadmin.lockUntil - Date.now()) / 60000);
-      console.log(`🔒 Account locked. Remaining minutes: ${remaining}`);
       return res.status(423).json({
         success: false,
         message: `Account locked. Try again in ${remaining} minutes.`,
@@ -153,7 +141,6 @@ exports.loginSuperAdmin = async (req, res) => {
     }
 
     if (superadmin.lockUntil && superadmin.lockUntil <= Date.now()) {
-      console.log("⏳ Lock expired. Resetting attempts.");
       await SuperAdmin.updateOne(
         { _id: superadmin._id },
         { $set: { loginAttempts: 0, lockUntil: null } }
@@ -163,7 +150,6 @@ exports.loginSuperAdmin = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, superadmin.password);
-    console.log("🔑 Password match status:", isMatch);
 
     if (!isMatch) {
       const updated = await SuperAdmin.findOneAndUpdate(
@@ -172,15 +158,12 @@ exports.loginSuperAdmin = async (req, res) => {
         { new: true }
       );
 
-      console.log("⚠️ Wrong password. Attempts:", updated.loginAttempts);
-
       if (updated.loginAttempts >= 3) {
         const lockTime = Date.now() + 30 * 60 * 1000;
         await SuperAdmin.updateOne(
           { _id: superadmin._id },
           { $set: { lockUntil: lockTime } }
         );
-        console.log("🚨 Account locked until:", new Date(lockTime));
         return res.status(423).json({
           success: false,
           message:
@@ -209,13 +192,6 @@ exports.loginSuperAdmin = async (req, res) => {
       { new: true }
     );
 
-    console.log("✅ Successful login saved:", {
-      loginAttempts: updatedUser.loginAttempts,
-      lockUntil: updatedUser.lockUntil,
-      lastLogin: updatedUser.lastLogin,
-      sessionId: updatedUser.sessionId,
-    });
-
     const payload = {
       role: "SUPERADMIN",
       user: { id: updatedUser.id, email: updatedUser.email },
@@ -230,13 +206,10 @@ exports.loginSuperAdmin = async (req, res) => {
       { algorithm: "HS256" },
       (err, token) => {
         if (err) {
-          console.error("❌ JWT Sign Error:", err);
           return res
             .status(500)
             .json({ success: false, message: "Error generating token" });
         }
-
-        console.log("🎟️ Token generated successfully");
 
         res.cookie("accessToken", token, {
           httpOnly: true,
@@ -258,7 +231,7 @@ exports.loginSuperAdmin = async (req, res) => {
       }
     );
   } catch (err) {
-    console.error("🔥 Login Error:", err);
+    console.error("Login Error:", err);
     return res
       .status(500)
       .json({ success: false, message: "Error logging in" });
@@ -290,7 +263,7 @@ exports.getSuperAdminById = async (req, res) => {
       superAdmin: superAdmin,
     });
   } catch (err) {
-    console.error("❌ getSuperAdminById Error:", err.message);
+    console.error("getSuperAdminById Error:", err.message);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -397,10 +370,10 @@ exports.logoutSuperAdmin = async (req, res, next) => {
   }
 };
 
-// ------------------------------ SUPER ADMIN ACTIONS FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN ACTIONS FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN ACTIONS FUNCTIONS  ----------------------------------
-// ------------------------------ SUPER ADMIN ACTIONS FUNCTIONS  ----------------------------------
+//------------------------------ SUPER ADMIN ACTIONS FUNCTIONS  ----------------------------------
+//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------
 
 /**
  * @description Approve and process seller account deletion
@@ -567,7 +540,6 @@ exports.preventLoginIfSuspendedOrBanned = async (req, res, next) => {
         .status(403)
         .json({ success: false, message: "Your account is suspended." });
     } else {
-      // Auto-reactivate after suspension ends
       seller.status = "ACTIVE";
       seller.suspension = null;
       await seller.save();
@@ -638,10 +610,6 @@ exports.updateStoreStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    console.log("📥 Incoming request to update store status");
-    console.log("➡️ Store ID:", id);
-    console.log("➡️ New Status:", status);
-
     if (!["PENDING", "ACTIVE", "SUSPENDED"].includes(status)) {
       return res
         .status(400)
@@ -650,7 +618,6 @@ exports.updateStoreStatus = async (req, res) => {
 
     const store = await Store.findById(id);
     if (!store) {
-      console.log("❌ Store not found");
       return res
         .status(404)
         .json({ success: false, message: "Store not found" });
@@ -667,22 +634,13 @@ exports.updateStoreStatus = async (req, res) => {
 
     await store.save();
 
-    console.log(
-      "✅ Store status updated successfully:",
-      store._id,
-      "➡️",
-      status
-    );
-
     res.status(201).json({
       success: true,
       message: `Store status updated to ${status}`,
       store,
     });
   } catch (error) {
-    console.error("❌ Error updating store status:", error);
+    console.error("Error updating store status:", error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
-

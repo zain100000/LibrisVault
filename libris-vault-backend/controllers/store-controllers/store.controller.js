@@ -5,38 +5,30 @@ const {
   uploadToCloudinary,
 } = require("../../utilities/cloudinary/cloudinary.utility");
 
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
+//------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
 
 /**
  * @description Create a new store for the authenticated seller
  * @route POST /api/store/sellerId/create-store
  * @access Private (Seller)
  */
-
 exports.createStore = async (req, res) => {
   try {
     const { id } = req.params;
     const { storeName, storeType, address, country, storeDescription } =
       req.body;
 
-    console.log("📥 Incoming request to create store");
-    console.log("➡️ Params (sellerId):", id);
-    console.log("➡️ Body:", req.body);
-    console.log("➡️ Files:", req.files);
-
     const seller = await Seller.findById(id);
     if (!seller) {
-      console.log("❌ Seller not found");
       return res
         .status(404)
         .json({ success: false, message: "Seller not found" });
     }
 
     if (!seller.isPhoneVerified) {
-      console.log("⚠️ Seller phone not verified");
       return res.status(403).json({
         success: false,
         message: "Phone verification required before creating a store",
@@ -44,7 +36,6 @@ exports.createStore = async (req, res) => {
     }
 
     if (seller.store) {
-      console.log("⚠️ Seller already has a store:", seller.store);
       return res.status(400).json({
         success: false,
         message:
@@ -53,7 +44,6 @@ exports.createStore = async (req, res) => {
     }
 
     if (await Store.findOne({ storeName })) {
-      console.log("⚠️ Store name already exists:", storeName);
       return res
         .status(400)
         .json({ success: false, message: "Store name already exists" });
@@ -61,27 +51,21 @@ exports.createStore = async (req, res) => {
 
     let storeLogo = null;
     if (req.files?.storeLogo && req.files.storeLogo[0]) {
-      console.log("📤 Uploading store logo to Cloudinary...");
       const logoUpload = await uploadToCloudinary(
         req.files.storeLogo[0],
         "storeLogo"
       );
       storeLogo = logoUpload.url;
-      console.log("✅ Store logo uploaded:", storeLogo);
     }
 
     let uploadedDocs = [];
     if (req.files?.documents && req.files.documents.length > 0) {
-      console.log(
-        `📤 Uploading ${req.files.documents.length} document(s) to Cloudinary...`
-      );
       for (const file of req.files.documents) {
         const result = await uploadToCloudinary(
           file,
           "storeVerificationDocuments"
         );
         uploadedDocs.push(result.url);
-        console.log("✅ Document uploaded:", result.url);
       }
     }
 
@@ -100,8 +84,6 @@ exports.createStore = async (req, res) => {
 
     seller.store = store._id;
     await seller.save();
-
-    console.log("✅ Store created successfully:", store._id);
 
     res.status(201).json({
       success: true,
@@ -132,7 +114,6 @@ exports.loginStore = async (req, res) => {
     }
 
     const store = await Store.findById(storeId).populate("seller");
-
     if (!store) {
       return res
         .status(404)
@@ -158,7 +139,6 @@ exports.loginStore = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, seller.password);
-
     if (!isMatch) {
       return res
         .status(401)
@@ -193,23 +173,16 @@ exports.loginStore = async (req, res) => {
  * @route GET /api/store/sellerId/get-store-by-id/:id
  * @access Private (Seller)
  */
-
 exports.getStoreById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log("📥 Incoming request to get store details");
-    console.log("➡️ Params (storeId):", id);
-
     const store = await Store.findById(id).populate("seller");
     if (!store) {
-      console.log("❌ Store not found");
       return res
         .status(404)
         .json({ success: false, message: "Store not found" });
     }
-
-    console.log("✅ Store details retrieved successfully:", store._id);
 
     res.status(201).json({
       success: true,

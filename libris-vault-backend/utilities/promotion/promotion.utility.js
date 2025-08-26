@@ -32,22 +32,19 @@ exports.cleanupPromotions = async () => {
       if (promo.scope === "SYSTEM_WIDE") {
         console.log(`⏰ Expiring system-wide promotion: ${promo.title}`);
 
-        // Reset discounted prices back to normal
         const books = await Book.find({});
         for (let book of books) {
-          book.discountedPrice = undefined; // remove discount
+          book.discountedPrice = undefined;
           book.activePromotion = undefined;
           await book.save();
         }
       } else if (promo.scope === "SELLER_SPECIFIC") {
         console.log(`⏰ Expiring seller promotion: ${promo.title}`);
 
-        // Remove promotion reference from seller
         await Seller.findByIdAndUpdate(promo.sellerId, {
           $pull: { promotions: promo._id },
         });
 
-        // Reset discounted prices only for applicable books
         const books = await Book.find({ _id: { $in: promo.applicableBooks } });
         for (let book of books) {
           book.discountedPrice = undefined;
@@ -56,7 +53,6 @@ exports.cleanupPromotions = async () => {
         }
       }
 
-      // Remove promotion from DB
       await Promotion.findByIdAndDelete(promo._id);
     }
 
@@ -70,5 +66,4 @@ exports.cleanupPromotions = async () => {
   }
 };
 
-// Run job every hour (you can adjust: "* * * * *" = every minute for testing)
 cron.schedule("0 * * * *", this.cleanupPromotions);

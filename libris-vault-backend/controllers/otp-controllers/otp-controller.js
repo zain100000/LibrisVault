@@ -18,10 +18,7 @@ exports.verifiedSellerPhones = verifiedSellerPhones;
  */
 exports.sendSellerOTP = async (req, res) => {
   try {
-    console.log("📩 Incoming request to sendSellerOTP");
     const { phone } = req.body;
-
-    console.log("➡️ Phone received from request body:", phone);
 
     if (!phone) {
       return res
@@ -30,7 +27,6 @@ exports.sendSellerOTP = async (req, res) => {
     }
 
     const seller = await Seller.findOne({ phone });
-    console.log("🔍 Seller lookup result:", seller ? "Found" : "Not Found");
 
     if (!seller) {
       return res
@@ -45,7 +41,6 @@ exports.sendSellerOTP = async (req, res) => {
     }
 
     if (!canResendOTP(phone)) {
-      console.warn("🚫 OTP resend limit reached for phone:", phone);
       return res.status(429).json({
         success: false,
         message:
@@ -54,12 +49,9 @@ exports.sendSellerOTP = async (req, res) => {
     }
 
     const otp = generateOTP();
-    console.log("🔑 Generated OTP:", otp);
 
     storeOTP(phone, otp);
-    console.log("💾 OTP stored for phone:", phone);
 
-    console.log("📧 Sending OTP email to:", seller.email);
     const sent = await sendOTPEmail(seller.email, otp);
 
     if (!sent) {
@@ -69,11 +61,9 @@ exports.sendSellerOTP = async (req, res) => {
         .json({ success: false, message: "Failed to send OTP email" });
     }
 
-    console.log("✅ OTP email sent successfully to:", seller.email);
-
     res.status(201).json({
       success: true,
-      message: "OTP sent successfull, please check your email",
+      message: "OTP sent successfully, please check your email",
     });
   } catch (err) {
     console.error("❌ Error in sendSellerOTP handler:", err);

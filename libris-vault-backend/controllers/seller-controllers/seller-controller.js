@@ -14,10 +14,10 @@ const {
   uploadToCloudinary,
 } = require("../../utilities/cloudinary/cloudinary.utility");
 
-// ------------------------------ SELLER BASE FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER BASE FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER BASE FUNCTIONS  ----------------------------------
-// ------------------------------ SELLER BASE FUNCTIONS  ----------------------------------
+//------------------------------ SELLER BASE FUNCTIONS  ----------------------------------
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 /**
  * @description Seller registration
@@ -156,13 +156,8 @@ exports.registerSeller = async (req, res) => {
 exports.loginSeller = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("📥 Seller login request received:", {
-      email,
-      passwordProvided: !!password,
-    });
 
     if (!email || !password) {
-      console.log("❌ Missing email or password");
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
@@ -170,36 +165,28 @@ exports.loginSeller = async (req, res) => {
     }
 
     let seller = await Seller.findOne({ email });
-    console.log("🔎 Found seller in DB:", seller ? seller.email : "Not Found");
 
     if (!seller) {
-      console.log("❌ Invalid email");
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    // Check if seller is BANNED
     if (seller.status === "BANNED") {
-      console.log("🚫 Account is banned");
       return res.status(403).json({
         success: false,
         message: "Cannot login, your account has been permanently banned.",
       });
     }
 
-    // Check if seller is SUSPENDED
     if (seller.status === "SUSPENDED") {
       const now = new Date();
       if (seller.suspension?.endAt && now < seller.suspension.endAt) {
-        console.log("⏸️ Account is suspended");
         return res.status(403).json({
           success: false,
           message: "Your account is temporarily suspended.",
         });
       } else {
-        // Auto-reactivate after suspension period ends
-        console.log("✅ Suspension period ended, reactivating account");
         seller.status = "ACTIVE";
         seller.suspension = null;
         await seller.save();
@@ -208,7 +195,6 @@ exports.loginSeller = async (req, res) => {
 
     if (seller.lockUntil && seller.lockUntil > Date.now()) {
       const remaining = Math.ceil((seller.lockUntil - Date.now()) / 60000);
-      console.log(`🔒 Account locked. Remaining minutes: ${remaining}`);
       return res.status(423).json({
         success: false,
         message: `Account locked. Try again in ${remaining} minutes.`,
@@ -216,7 +202,6 @@ exports.loginSeller = async (req, res) => {
     }
 
     if (seller.lockUntil && seller.lockUntil <= Date.now()) {
-      console.log("⏳ Lock expired. Resetting attempts.");
       await Seller.updateOne(
         { _id: seller._id },
         { $set: { loginAttempts: 0, lockUntil: null } }
@@ -226,7 +211,6 @@ exports.loginSeller = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, seller.password);
-    console.log("🔑 Password match status:", isMatch);
 
     if (!isMatch) {
       const updated = await Seller.findOneAndUpdate(
@@ -235,15 +219,12 @@ exports.loginSeller = async (req, res) => {
         { new: true }
       );
 
-      console.log("⚠️ Wrong password. Attempts:", updated.loginAttempts);
-
       if (updated.loginAttempts >= 3) {
         const lockTime = Date.now() + 30 * 60 * 1000;
         await Seller.updateOne(
           { _id: seller._id },
           { $set: { lockUntil: lockTime } }
         );
-        console.log("🚨 Account locked until:", new Date(lockTime));
         return res.status(423).json({
           success: false,
           message:
@@ -272,13 +253,6 @@ exports.loginSeller = async (req, res) => {
       { new: true }
     );
 
-    console.log("✅ Successful seller login saved:", {
-      loginAttempts: updatedUser.loginAttempts,
-      lockUntil: updatedUser.lockUntil,
-      lastLogin: updatedUser.lastLogin,
-      sessionId: updatedUser.sessionId,
-    });
-
     const payload = {
       role: "SELLER",
       user: { id: updatedUser.id, email: updatedUser.email },
@@ -298,8 +272,6 @@ exports.loginSeller = async (req, res) => {
             .status(500)
             .json({ success: false, message: "Error generating token" });
         }
-
-        console.log("🎟️ Token generated successfully for seller");
 
         res.cookie("accessToken", token, {
           httpOnly: true,
@@ -428,7 +400,6 @@ exports.updateSeller = async (req, res) => {
  * @route PATCH /api/seller/reset-seller-password
  * @access Private (Seller)
  */
-
 exports.resetSellerPassword = async (req, res) => {
   try {
     const { email, currentPassword, newPassword } = req.body;
