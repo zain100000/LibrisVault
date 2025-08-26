@@ -326,22 +326,26 @@ exports.updateUser = async (req, res) => {
 
     // ✅ If new profile picture uploaded
     if (req.files?.profilePicture) {
-      // Delete old profile picture if exists
+      let existingPublicId = null;
+
+      // Extract public ID from existing profile picture URL if it exists
       if (user.profilePicture) {
         try {
-          const publicId = user.profilePicture.split("/").pop().split(".")[0];
-          await cloudinary.uploader.destroy(
-            `LibrisVault/profilePictures/${publicId}`
-          );
+          // Extract public ID from Cloudinary URL
+          const matches = user.profilePicture.match(/\/v\d+\/(.+?)\./);
+          if (matches && matches[1]) {
+            existingPublicId = matches[1];
+          }
         } catch (error) {
-          console.error("❌ Error deleting old profile picture:", error);
+          console.error("❌ Error extracting public ID:", error);
         }
       }
 
-      // Upload new profile picture
+      // Upload new profile picture with the same public ID to overwrite
       const profilePictureUploadResult = await uploadToCloudinary(
         req.files.profilePicture[0],
-        "profilePicture"
+        "profilePicture",
+        existingPublicId // Pass the public ID to overwrite the existing image
       );
       updates.profilePicture = profilePictureUploadResult.url;
     }

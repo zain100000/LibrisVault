@@ -82,7 +82,7 @@ exports.checkUploadedFiles = (req, res, next) => {
 };
 
 /**
- * @description Uploads a file buffer to Cloudinary
+ * @description Uploads a file buffer to Cloudinary with optional overwrite
  */
 exports.uploadToCloudinary = async (file, type, existingPublicId = null) => {
   const baseFolder = "LibrisVault";
@@ -109,11 +109,14 @@ exports.uploadToCloudinary = async (file, type, existingPublicId = null) => {
     let public_id;
 
     if (existingPublicId) {
+      // Use the existing public ID to overwrite the file
       public_id = existingPublicId;
     } else {
+      // Generate a new public ID
       const timestamp = Date.now();
+      const randomNum = Math.round(Math.random() * 1e6);
       const ext = path.extname(file.originalname);
-      public_id = `${folder}/${timestamp}-${Math.round(Math.random() * 1e6)}${ext}`;
+      public_id = `${folder}/${timestamp}-${randomNum}${ext}`;
     }
 
     let resourceType = "image";
@@ -128,7 +131,8 @@ exports.uploadToCloudinary = async (file, type, existingPublicId = null) => {
     const result = await cloudinary.uploader.upload(fileBuffer, {
       public_id: public_id,
       resource_type: resourceType,
-      overwrite: true,
+      overwrite: true, // This ensures the file is overwritten if public_id exists
+      invalidate: true, // This ensures CDN cache is invalidated
     });
 
     return { url: result.secure_url, public_id: result.public_id };
