@@ -14,6 +14,9 @@ const {
 const {
   uploadToCloudinary,
 } = require("../../utilities/cloudinary/cloudinary.utility");
+const {
+  sendPasswordResetEmail,
+} = require("../../helpers/email-helper/email.helper");
 
 //------------------------------ USER BASE FUNCTIONS  ------------------------------------
 //----------------------------------------------------------------------------------------
