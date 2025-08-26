@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 const User = require("../../models/user-models/user.model");
 const profilePictureUpload = require("../../utilities/cloudinary/cloudinary.utility");
-const jwt = require("jsonwebtoken");
 const {
   passwordRegex,
   hashPassword,
@@ -17,6 +17,7 @@ const {
 const {
   sendPasswordResetEmail,
 } = require("../../helpers/email-helper/email.helper");
+const { v2: cloudinary } = require("cloudinary");
 
 //------------------------------ USER BASE FUNCTIONS  ------------------------------------
 //----------------------------------------------------------------------------------------
@@ -315,26 +316,33 @@ exports.updateUser = async (req, res) => {
     }
 
     const allowedFields = ["userName", "address"];
-
     let updates = {};
+
     for (const field of allowedFields) {
       if (req.body[field] !== undefined && req.body[field] !== "") {
-        updates[field] =
-          field === "profilePicture"
-            ? req.body[field]
-                .split(",")
-                .map((g) => g.trim())
-                .filter((g) => g)
-            : req.body[field];
+        updates[field] = req.body[field];
       }
     }
 
+    // ✅ If new profile picture uploaded
     if (req.files?.profilePicture) {
-      const profilePictureUploadResult =
-        await uploadToCloudinary(
-          req.files.profilePicture[0],
-          "profilePicture"
-        );
+      // Delete old profile picture if exists
+      if (user.profilePicture) {
+        try {
+          const publicId = user.profilePicture.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(
+            `LibrisVault/profilePictures/${publicId}`
+          );
+        } catch (error) {
+          console.error("❌ Error deleting old profile picture:", error);
+        }
+      }
+
+      // Upload new profile picture
+      const profilePictureUploadResult = await uploadToCloudinary(
+        req.files.profilePicture[0],
+        "profilePicture"
+      );
       updates.profilePicture = profilePictureUploadResult.url;
     }
 
@@ -353,10 +361,10 @@ exports.updateUser = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "User updated successfully",
-      user: updatedUser,
+      updatedUser: updatedUser,
     });
   } catch (error) {
-    console.error("❌ Error updating book:", error);
+    console.error("❌ Error updating user:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
