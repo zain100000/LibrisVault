@@ -50,18 +50,18 @@ router.post("/logout-user", authMiddleware, userController.logoutUser);
  * @description Route to send email for password reset
  */
 
-router.post("/forgot-password", sellerController.forgotPassword);
+router.post("/forgot-password", userController.forgotPassword);
 
 /**
  * @description Route to reset password with token
  */
 
-router.post("/reset-password/:token", sellerController.resetPasswordWithToken);
+router.post("/reset-password/:token", userController.resetPasswordWithToken);
 
 /**
  * @description Route to verify reset token
  */
 
-router.post("/verify-reset-token/:token", sellerController.verifyResetToken);
+router.post("/verify-reset-token/:token", userController.verifyResetToken);
 
 module.exports = router;
