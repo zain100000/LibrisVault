@@ -20,7 +20,7 @@ const corsOptions = {
       ? true
       : process.env.ALLOWED_ORIGINS.split(","),
   credentials: true,
-  optionsSuccessStatus: 200,
+  optionsSuccessStatus: 201,
 };
 app.use(cors(corsOptions));
 
@@ -50,6 +50,7 @@ const sellerRoute = require("./routes/seller-routes/seller.route.js");
 const otpRoute = require("./routes/otp-routes/otp-route.js");
 const inventoryRoute = require("./routes/book-routes/book.route.js");
 const storeRoute = require("./routes/store-routes/store-route.js");
+const promotionRoute = require("./routes/promotion-routes/promotion.route.js");
 
 // ==================== API MIDDLEWARES ====================
 app.use("/api/super-admin", superAdminRoute);
@@ -57,11 +58,15 @@ app.use("/api/seller", sellerRoute);
 app.use("/api/otp", otpRoute);
 app.use("/api/inventory", inventoryRoute);
 app.use("/api/store", storeRoute);
+app.use("/api/promotion", promotionRoute);
+
+// ==================== CRON JOBS ====================
+require("./utilities/cron/cron.js");
 
 // ==================== SERVER MIDDLEWARES ====================
 
 app.get("/api/health", (req, res) => {
-  res.status(200).json({
+  res.status(201).json({
     success: true,
     message: "Server is running healthy",
     timestamp: new Date().toISOString(),

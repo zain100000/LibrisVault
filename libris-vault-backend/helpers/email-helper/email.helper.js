@@ -1,5 +1,17 @@
 const nodemailer = require("nodemailer");
 
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+  logger: true,
+  debug: true,
+});
+
 /**
  * Send OTP to user's Gmail
  * @param {string} toEmail - Receiver's email
@@ -10,33 +22,21 @@ exports.sendOTPEmail = async (toEmail, otp) => {
   console.log("➡️ Target email:", toEmail);
   console.log("➡️ OTP to send:", otp);
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    logger: true,
-    debug: true,
-  });
-
   const mailOptions = {
     from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
     to: toEmail,
     subject: "🔐 Your LIBRIS VAULT OTP Code",
     html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
-      <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px;" />
-      <h2>LIBRIS VAULT</h2>
-      <p>Your One-Time Password (OTP) is:</p>
-      <p style="font-size: 28px; font-weight: bold; color: #1a73e8; margin: 20px 0;">${otp}</p>
-      <p style="font-size: 14px; color: #888;">This OTP will expire in 5 minutes. Please do not share it with anyone.</p>
-      <hr style="border-top: 1px solid #e0e0e0; margin: 20px 0;">
-      <p style="font-size: 12px; color: #aaa;">If you did not request this code, please ignore this email.</p>
-    </div>
-  `,
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
+        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px;" />
+        <h2>LIBRIS VAULT</h2>
+        <p>Your One-Time Password (OTP) is:</p>
+        <p style="font-size: 28px; font-weight: bold; color: #1a73e8; margin: 20px 0;">${otp}</p>
+        <p style="font-size: 14px; color: #888;">This OTP will expire in 5 minutes. Please do not share it with anyone.</p>
+        <hr style="border-top: 1px solid #e0e0e0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #aaa;">If you did not request this code, please ignore this email.</p>
+      </div>
+    `,
   };
 
   try {
@@ -46,6 +46,51 @@ exports.sendOTPEmail = async (toEmail, otp) => {
     return true;
   } catch (err) {
     console.error("❌ Failed to send OTP via Gmail:", err.message);
+    return false;
+  }
+};
+
+/**
+ * Send Promotion Notification Email
+ * @param {string} toEmail - Receiver's email
+ * @param {object} promotion - Promotion details { title, description, startDate, endDate }
+ */
+exports.sendPromotionEmail = async (toEmail, promotion) => {
+  console.log("📧 Preparing to send Promotion email...");
+  console.log("➡️ Target email:", toEmail);
+  console.log("➡️ Promotion:", promotion);
+
+  const mailOptions = {
+    from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `🎉 New Promotion: ${promotion.title}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px; display:block; margin:auto;" />
+        <h2 style="color:#1a73e8; text-align:center;">${promotion.title}</h2>
+        <p style="font-size: 16px; color: #333; text-align:center;">${promotion.description || "Don't miss out on this amazing deal!"}</p>
+        
+        <div style="margin-top:20px; text-align:center;">
+          <p><b>Start Date:</b> ${new Date(promotion.startDate).toLocaleDateString()}</p>
+          <p><b>End Date:</b> ${new Date(promotion.endDate).toLocaleDateString()}</p>
+        </div>
+
+        <hr style="border-top: 1px solid #e0e0e0; margin: 20px 0;">
+
+        <p style="font-size: 14px; color: #888; text-align:center;">
+          You are receiving this email because you are subscribed to LIBRIS VAULT notifications.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Promotion email sent successfully!");
+    console.log("📄 Message ID:", info.messageId);
+    return true;
+  } catch (err) {
+    console.error("❌ Failed to send Promotion email:", err.message);
     return false;
   }
 };

@@ -110,7 +110,7 @@ exports.registerSeller = async (req, res) => {
 
     await seller.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message:
         "Seller account created successfully. You can verify your phone now or skip for later.",
@@ -351,7 +351,7 @@ exports.getSellerById = async (req, res) => {
         .json({ success: false, message: "Seller not found." });
     }
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "Seller fetched successfully.",
       seller,
@@ -412,7 +412,7 @@ exports.updateSeller = async (req, res) => {
 
     await seller.save();
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "Seller updated successfully.",
       seller,
@@ -476,7 +476,7 @@ exports.resetSellerPassword = async (req, res) => {
     seller.sessionId = generateSecureToken();
     await seller.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Password Reset Successfully",
     });
@@ -507,7 +507,7 @@ exports.logoutSeller = async (req, res, next) => {
       sameSite: "strict",
     });
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Logout Successfully!",
     });
@@ -568,7 +568,7 @@ exports.requestSellerDeletion = async (req, res) => {
 
     await seller.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message:
         "Deletion request submitted successfully. Awaiting SuperAdmin review.",

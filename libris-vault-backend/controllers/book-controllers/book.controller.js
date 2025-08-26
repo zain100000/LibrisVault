@@ -3,6 +3,10 @@ const axios = require("axios");
 const Book = require("../../models/book-models/book.model");
 const Seller = require("../../models/seller.models/seller-model");
 const cloudinaryUpload = require("../../utilities/cloudinary/cloudinary.utility");
+const {
+  getActiveSystemWidePromotion,
+  getActiveSellerPromotion,
+} = require("../../utilities/promotion/promotion.utility");
 
 // ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
 // ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
@@ -89,7 +93,7 @@ exports.uploadBook = async (req, res) => {
       console.log(`⚠️ Book "${book.title}" is LOW ON STOCK: ${book.stock}`);
     }
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Book added successfully",
       book,
@@ -121,26 +125,75 @@ exports.uploadBook = async (req, res) => {
 
 exports.getAllBooks = async (req, res) => {
   try {
-    const books = await Book.find().populate("seller");
+    let books = await Book.find().populate("seller");
 
-    if (books.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No Books found!",
-      });
+    const activeSystemPromo = await getActiveSystemWidePromotion();
+    const activeSellerPromos = await getActiveSellerPromotion();
+
+    if (activeSystemPromo) {
+      const discount = activeSystemPromo.discountPercentage;
+
+      books = await Promise.all(
+        books.map(async (book) => {
+          const discountedPrice = (
+            book.price -
+            (book.price * discount) / 100
+          ).toFixed(2);
+
+          book.discountedPrice = parseFloat(discountedPrice);
+          book.activePromotion = activeSystemPromo.title;
+          await book.save();
+
+          return book;
+        })
+      );
+    } else if (activeSellerPromos && activeSellerPromos.length > 0) {
+      // Apply seller-specific promotions
+      books = await Promise.all(
+        books.map(async (book) => {
+          const promo = activeSellerPromos.find(
+            (p) =>
+              String(p.sellerId) === String(book.seller._id) &&
+              p.applicableBooks.includes(book._id)
+          );
+
+          if (promo) {
+            const discountedPrice = (
+              book.price -
+              (book.price * promo.discountPercentage) / 100
+            ).toFixed(2);
+
+            book.discountedPrice = parseFloat(discountedPrice);
+            book.activePromotion = promo.title;
+          } else {
+            book.discountedPrice = null;
+            book.activePromotion = null;
+          }
+
+          await book.save();
+          return book;
+        })
+      );
+    } else {
+      // No active promotions at all → reset
+      books = await Promise.all(
+        books.map(async (book) => {
+          book.discountedPrice = null;
+          book.activePromotion = null;
+          await book.save();
+          return book;
+        })
+      );
     }
 
-    res.status(200).json({
+    res.json({
       success: true,
       message: "Books fetched successfully",
-      books: books,
+      books,
     });
   } catch (error) {
-    console.error("Error fetching books:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
+    console.error("❌ Error fetching books with promo:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -262,7 +315,7 @@ exports.updateBook = async (req, res) => {
       }
     }
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Book updated successfully",
       book: updatedBook,
@@ -315,7 +368,7 @@ exports.deleteBook = async (req, res) => {
 
     await Book.findByIdAndDelete(id);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Book deleted successfully!",
     });
@@ -580,7 +633,7 @@ exports.uploadBookByISBN = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "Book added successfully using ISBN",
       book,

@@ -79,7 +79,7 @@ exports.registerSuperAdmin = async (req, res) => {
 
     await superAdmin.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "SuperAdmin created successfully",
     });
@@ -284,7 +284,7 @@ exports.getSuperAdminById = async (req, res) => {
       });
     }
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "Super Admin fetched successfully",
       superAdmin: superAdmin,
@@ -353,7 +353,7 @@ exports.resetSuperAdminPassword = async (req, res) => {
     superAdmin.sessionId = generateSecureToken();
     await superAdmin.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Password Reset Successfully",
     });
@@ -384,7 +384,7 @@ exports.logoutSuperAdmin = async (req, res, next) => {
       sameSite: "strict",
     });
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Logout Successfully!",
     });
@@ -468,7 +468,7 @@ exports.approveSellerAccountDeletion = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Seller account and all associated data deleted successfully",
     });
@@ -527,7 +527,7 @@ exports.updateSellerStatus = async (req, res) => {
 
     await seller.save();
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: `Seller ${action.toLowerCase()}ed successfully`,
     });
@@ -617,7 +617,7 @@ exports.getAllSellers = async (req, res) => {
     const sellers = await Seller.find().populate({
       path: "store",
     });
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Sellers fetched successfully!",
       sellers,
@@ -674,7 +674,7 @@ exports.updateStoreStatus = async (req, res) => {
       status
     );
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: `Store status updated to ${status}`,
       store,
@@ -684,3 +684,5 @@ exports.updateStoreStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+

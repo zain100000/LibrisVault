@@ -71,7 +71,7 @@ exports.sendSellerOTP = async (req, res) => {
 
     console.log("✅ OTP email sent successfully to:", seller.email);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "OTP sent successfull, please check your email",
     });
@@ -128,7 +128,7 @@ exports.verifySellerOTP = async (req, res) => {
     verifiedSellerPhones.add(phone);
     removeOTP(phone);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Phone verified successfully",
       data: updatedSeller,

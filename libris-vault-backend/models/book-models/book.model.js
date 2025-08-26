@@ -72,6 +72,16 @@ const BookSchema = new mongoose.Schema(
       ref: "Seller",
       required: true,
     },
+
+    discountedPrice: {
+      type: Number,
+      default: null,
+    },
+
+    activePromotion: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

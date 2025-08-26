@@ -103,7 +103,7 @@ exports.createStore = async (req, res) => {
 
     console.log("✅ Store created successfully:", store._id);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message:
         "Store created successfully and is pending approval by Super Admin.",
@@ -211,7 +211,7 @@ exports.getStoreById = async (req, res) => {
 
     console.log("✅ Store details retrieved successfully:", store._id);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Store fetched successfully",
       store,
