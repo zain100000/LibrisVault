@@ -594,6 +594,10 @@ exports.uploadBookByISBN = async (req, res) => {
   }
 };
 
+/**
+ * @description Cleans and formats author names by removing dates and reformatting "Last, First" to "First Last".
+ * @param {string} author - The raw author name string.
+ */
 function cleanAuthorName(author) {
   if (typeof author !== "string") return author;
   author = author.replace(/,\s*\d{4}[-–]\d{4}\.?/g, "");
