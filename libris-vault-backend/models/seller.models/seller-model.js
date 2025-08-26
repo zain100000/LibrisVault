@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+/**
+ * @description Schema for Seller
+ */
+
 const SellerSchema = new mongoose.Schema(
   {
     profilePicture: {
@@ -143,6 +147,16 @@ const SellerSchema = new mongoose.Schema(
 
     sessionId: {
       type: String,
+      default: null,
+    },
+
+    passwordResetToken: {
+      type: String,
+      default: null,
+    },
+
+    passwordResetExpires: {
+      type: Date,
       default: null,
     },
   },

@@ -1,5 +1,6 @@
 const Promotion = require("../../models/promotion-models/promotion.model");
 const Seller = require("../../models/seller.models/seller-model");
+const User = require("../../models/user-models/user.model");
 const {
   sendPromotionEmail,
 } = require("../../helpers/email-helper/email.helper");
@@ -39,7 +40,7 @@ exports.createPromotion = async (req, res) => {
 
     await promo.save();
 
-    const users = await Seller.find({}, "email");
+    const users = await User.find({}, "email");
     for (const user of users) {
       await sendPromotionEmail(user.email, promo);
     }
@@ -89,7 +90,7 @@ exports.getActiveSystemWidePromotion = async (req, res) => {
       }
     }
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       promotion: {
         id: promo._id,
@@ -145,7 +146,7 @@ exports.reviewSellerPromotion = async (req, res) => {
 
       await promotion.save();
 
-      const users = await Seller.find({}, "email");
+      const users = await User.find({}, "email");
       for (const user of users) {
         await sendPromotionEmail(user.email, promotion);
       }

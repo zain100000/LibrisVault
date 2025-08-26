@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -38,6 +39,41 @@ exports.sendOTPEmail = async (toEmail, otp) => {
     return true;
   } catch (err) {
     console.error("Failed to send OTP via Gmail:", err.message);
+    return false;
+  }
+};
+
+/**
+ * Send Password Reset Email
+ * @param {string} toEmail - Receiver's email
+ * @param {string} resetToken - Password reset token
+ */
+exports.sendPasswordResetEmail = async (toEmail, resetToken) => {
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+  const mailOptions = {
+    from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "🔐 Reset Your LIBRIS VAULT Password",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; text-align: center;">
+        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px;" />
+        <h2>Password Reset Request</h2>
+        <p>You requested to reset your password. Click the button below to create a new password:</p>
+        <a href="${resetLink}" style="display: inline-block; background-color: #1a73e8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0;">Reset Password</a>
+        <p style="font-size: 14px; color: #888;">This link will expire in 1 hour for security reasons.</p>
+        <p style="font-size: 12px; color: #aaa;">If you didn't request this password reset, please ignore this email.</p>
+        <hr style="border-top: 1px solid #e0e0e0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #888;">Or copy and paste this link in your browser:<br>${resetLink}</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (err) {
+    console.error("Failed to send password reset email:", err.message);
     return false;
   }
 };

@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+/**
+ * @description Schema for Promotion
+ */
+
 const PromotionSchema = new mongoose.Schema(
   {
     scope: {

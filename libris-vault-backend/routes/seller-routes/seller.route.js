@@ -65,4 +65,22 @@ router.delete(
   sellerController.requestSellerDeletion
 );
 
+/**
+ * @description Route to send email for password reset
+ */
+
+router.post("/forgot-password", sellerController.forgotPassword);
+
+/**
+ * @description Route to reset password with token
+ */
+
+router.post("/reset-password/:token", sellerController.resetPasswordWithToken);
+
+/**
+ * @description Route to verify reset token
+ */
+
+router.post("/verify-reset-token/:token", sellerController.verifyResetToken);
+
 module.exports = router;

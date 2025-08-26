@@ -51,6 +51,7 @@ const otpRoute = require("./routes/otp-routes/otp-route.js");
 const inventoryRoute = require("./routes/book-routes/book.route.js");
 const storeRoute = require("./routes/store-routes/store-route.js");
 const promotionRoute = require("./routes/promotion-routes/promotion.route.js");
+const userRoute = require("./routes/user-routes/user.route.js");
 
 // ==================== API MIDDLEWARES ====================
 app.use("/api/super-admin", superAdminRoute);
@@ -59,6 +60,7 @@ app.use("/api/otp", otpRoute);
 app.use("/api/inventory", inventoryRoute);
 app.use("/api/store", storeRoute);
 app.use("/api/promotion", promotionRoute);
+app.use("/api/user", userRoute);
 
 // ==================== CRON JOBS ====================
 require("./utilities/cron/cron.js");

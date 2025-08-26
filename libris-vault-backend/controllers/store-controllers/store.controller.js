@@ -184,7 +184,7 @@ exports.getStoreById = async (req, res) => {
         .json({ success: false, message: "Store not found" });
     }
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Store fetched successfully",
       store,

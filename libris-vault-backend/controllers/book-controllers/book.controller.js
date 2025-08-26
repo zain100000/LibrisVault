@@ -181,7 +181,7 @@ exports.getAllBooks = async (req, res) => {
       );
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: "Books fetched successfully",
       books,

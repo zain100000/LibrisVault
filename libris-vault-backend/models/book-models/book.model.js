@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 /**
- * @description Global schema for Book
+ * @description  Schema for Inventory(Book)
  */
 const BookSchema = new mongoose.Schema(
   {
