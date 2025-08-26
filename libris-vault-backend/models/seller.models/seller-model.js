@@ -70,14 +70,14 @@ const SellerSchema = new mongoose.Schema(
       },
     ],
 
-    order: [
+    orders: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Order",
       },
     ],
 
-    promotion: [
+    promotions: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Promotion",
