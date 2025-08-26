@@ -331,7 +331,7 @@ exports.updateUser = async (req, res) => {
 
     if (req.files?.profilePicture) {
       const profilePictureUploadResult =
-        await cloudinaryUpload.uploadToCloudinary(
+        await uploadToCloudinary(
           req.files.profilePicture[0],
           "profilePicture"
         );
