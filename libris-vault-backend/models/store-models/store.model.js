@@ -77,6 +77,11 @@ const StoreSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
+    bookRequests: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BookRequest",
+    }],
   },
   { timestamps: true }
 );

@@ -116,3 +116,90 @@ exports.sendPromotionEmail = async (toEmail, promotion) => {
     return false;
   }
 };
+
+/**
+ * Send Book Request Notification Email to Seller
+ * @param {string} toEmail - Seller email
+ * @param {object} request - Request details { requestedTitle, requestedAuthor, message, status }
+ */
+exports.sendBookRequestNotificationToSeller = async (toEmail, request) => {
+  const mailOptions = {
+    from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "📚 New Book Request from a User",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px; display:block; margin:auto;" />
+        <h2 style="text-align:center;">New Book Request</h2>
+        <p>A user has requested a new book in your store:</p>
+
+        <ul style="font-size: 16px; color: #333;">
+          <li><b>Title:</b> ${request.requestedTitle}</li>
+          <li><b>Author:</b> ${request.requestedAuthor}</li>
+          <li><b>Message:</b> ${request.message || "N/A"}</li>
+          <li><b>Status:</b> ${request.status}</li>
+        </ul>
+
+        <p style="font-size: 14px; color: #888;">Please check your store inbox to manage this request.</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (err) {
+    console.error(
+      "Failed to send Book Request Notification to Seller:",
+      err.message
+    );
+    return false;
+  }
+};
+
+/**
+ * Send Book Request Status Update Email to User
+ * @param {string} toEmail - User email
+ * @param {object} request - Request details { requestedTitle, requestedAuthor, status }
+ */
+exports.sendBookRequestStatusToUser = async (toEmail, request) => {
+  const mailOptions = {
+    from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `📢 Update on Your Book Request: ${request.requestedTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px; display:block; margin:auto;" />
+        <h2 style="text-align:center;">Your Book Request Update</h2>
+        <p>We have an update regarding your requested book:</p>
+
+        <ul style="font-size: 16px; color: #333;">
+          <li><b>Title:</b> ${request.requestedTitle}</li>
+          <li><b>Author:</b> ${request.requestedAuthor}</li>
+          <li><b>Status:</b> ${request.status}</li>
+        </ul>
+
+        ${
+          request.status === "APPROVED"
+            ? `<p style="font-size: 16px; color: green;">✅ Great news! Your request has been approved. We will add this title to the store soon.</p>`
+            : request.status === "REJECTED"
+              ? `<p style="font-size: 16px; color: red;">❌ Unfortunately, your request was rejected by the seller.</p>`
+              : `<p style="font-size: 16px; color: orange;">⏳ Your request is still pending review.</p>`
+        }
+
+        <p style="font-size: 14px; color: #888;">Thank you for using LIBRIS VAULT.</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (err) {
+    console.error(
+      "Failed to send Book Request Status Email to User:",
+      err.message
+    );
+    return false;
+  }
+};
