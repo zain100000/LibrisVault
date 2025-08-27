@@ -1,9 +1,11 @@
 const BookRequest = require("../../models/book-request-models/book.request.model");
 const Store = require("../../models/store-models/store.model");
+const User = require("../../models/user-models/user.model");
 const {
   sendBookRequestNotificationToSeller,
   sendBookRequestStatusToUser,
 } = require("../../helpers/email-helper/email.helper");
+
 
 /**
  * @description Controller to create request
