@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
 
-/**
- * @description  Schema for Inventory(Book)
- */
 const BookSchema = new mongoose.Schema(
   {
     bookCover: {

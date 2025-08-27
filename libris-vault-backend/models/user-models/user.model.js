@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
 
-/**
- * @description Schema for User(Customer)
- */
 const userSchema = new mongoose.Schema(
   {
     profilePicture: {
@@ -38,17 +35,14 @@ const userSchema = new mongoose.Schema(
       {
         productId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Product",
-        },
-
-        userId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+          ref: "Inventory",
+          required: true,
         },
 
         quantity: {
           type: Number,
           default: 1,
+          min: 1,
         },
 
         price: {
@@ -59,6 +53,11 @@ const userSchema = new mongoose.Schema(
         unitPrice: {
           type: Number,
           required: true,
+        },
+
+        addedAt: {
+          type: Date,
+          default: Date.now,
         },
       },
     ],
@@ -73,14 +72,14 @@ const userSchema = new mongoose.Schema(
         status: {
           type: String,
           enum: [
-            "ORDER_RECEIVED", // Order placed but payment not confirmed yet
-            "PAYMENT_CONFIRMED", // Payment successfully processed
-            "PREPARING", // Barista is making the drinks
-            "READY_FOR_PICKUP", // Order is ready at counter
-            "PICKED_UP", // Customer has received order
-            "COMPLETED", // Order fulfilled (for records)
-            "CANCELLED", // Order cancelled before preparation
-            "REFUNDED", // Order cancelled and refunded
+            "ORDER_RECEIVED",
+            "PAYMENT_CONFIRMED",
+            "PREPARING",
+            "READY_FOR_PICKUP",
+            "PICKED_UP",
+            "COMPLETED",
+            "CANCELLED",
+            "REFUNDED",
           ],
           default: "ORDER_RECEIVED",
         },
