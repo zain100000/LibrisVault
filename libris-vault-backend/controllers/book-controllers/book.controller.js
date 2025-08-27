@@ -443,11 +443,12 @@ exports.uploadBookByISBN = async (req, res) => {
     }
     if (
       (!bookData.title || !bookData.authors) &&
-      olSearch &&
-      olSearch.data.docs &&
-      olSearch.data.docs.length > 0
+      olSearchRes && // Changed from olSearch to olSearchRes
+      olSearchRes.data && // Added check for data
+      olSearchRes.data.docs && // Added check for docs
+      olSearchRes.data.docs.length > 0
     ) {
-      const doc = olSearch.data.docs[0];
+      const doc = olSearchRes.data.docs[0];
       bookData = {
         ...bookData,
         title: bookData.title || doc.title,
@@ -625,7 +626,7 @@ exports.uploadBookByISBN = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Book added successfully using ISBN",
+      message: "Book uploaded successfully",
       book,
     });
   } catch (error) {
