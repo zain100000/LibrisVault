@@ -15,7 +15,11 @@ exports.requestBook = async (req, res) => {
     const { storeId, requestedTitle, requestedAuthor, message } = req.body;
     const userId = req.user.id;
 
-    const store = await Store.findById(storeId);
+    // populate seller email
+    const store = await Store.findById(storeId).populate(
+      "seller",
+      "email storeName"
+    );
     if (!store) {
       return res
         .status(404)
@@ -33,13 +37,20 @@ exports.requestBook = async (req, res) => {
     store.bookRequests.push(request._id);
     await store.save();
 
-    // 🔔 Send email notification to seller
-    if (store.email) {
-      await sendBookRequestNotificationToSeller(store.email, {
-        requestedTitle,
-        requestedAuthor,
-        message,
-        status: request.status,
+    // 🔔 Notify seller
+    if (store.seller?.email) {
+      setImmediate(async () => {
+        try {
+          await sendBookRequestNotificationToSeller(store.seller.email, {
+            storeName: store.storeName,
+            requestedTitle,
+            requestedAuthor,
+            message,
+            status: request.status,
+          });
+        } catch (err) {
+          console.error("Failed to send seller notification:", err.message);
+        }
       });
     }
 
