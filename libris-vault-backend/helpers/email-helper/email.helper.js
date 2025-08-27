@@ -135,23 +135,29 @@ exports.sendBookRequestNotificationToSeller = async (toEmail, data) => {
   const mailOptions = {
     from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
     to: toEmail,
-    subject: `📢 New Book Request for ${storeName}`,
+    subject: `📚 New Book Request for ${storeName}`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px; display:block; margin:auto;" />
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e8e8e8; border-radius: 12px; background: #fafafa;">
+        <div style="text-align: center; margin-bottom: 25px;">
+          <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:150px;"/>
+        </div>
         
-        <h2 style="text-align:center; color:#333;">📚 New Book Request</h2>
-        <p><strong>User:</strong> ${userName || "Unknown User"}</p>
-        <p><strong>Store:</strong> ${storeName}</p>
-        <p><strong>Title:</strong> ${requestedTitle}</p>
-        <p><strong>Author:</strong> ${requestedAuthor}</p>
-        <p><strong>Message:</strong> ${message || "No additional message"}</p>
-        <p><strong>Status:</strong> ${status}</p>
-        
-        <hr style="margin:20px 0;" />
-        <p style="font-size: 14px; color: #888; text-align:center;">
-          This is an automated notification regarding a book request.  
-        </p>
+        <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+          <h2 style="color: #2c3e50; text-align: center; margin-bottom: 25px; font-weight: 600;">New Book Request</h2>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="margin: 8px 0; color: #34495e;"><strong style="color: #2c3e50;">User:</strong> ${userName || "Unknown User"}</p>
+            <p style="margin: 8px 0; color: #34495e;"><strong style="color: #2c3e50;">Store:</strong> ${storeName}</p>
+            <p style="margin: 8px 0; color: #34495e;"><strong style="color: #2c3e50;">Title:</strong> ${requestedTitle}</p>
+            <p style="margin: 8px 0; color: #34495e;"><strong style="color: #2c3e50;">Author:</strong> ${requestedAuthor}</p>
+            <p style="margin: 8px 0; color: #34495e;"><strong style="color: #2c3e50;">Message:</strong> ${message || "No additional message"}</p>
+            <p style="margin: 8px 0; color: #34495e;"><strong style="color: #2c3e50;">Status:</strong> <span style="color: #3498db; font-weight: 500;">${status}</span></p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="font-size: 14px; color: #7f8c8d;">This is an automated notification regarding a book request.</p>
+          </div>
+        </div>
       </div>
     `,
   };
@@ -165,32 +171,56 @@ exports.sendBookRequestNotificationToSeller = async (toEmail, data) => {
  * @param {object} request - Request details { requestedTitle, requestedAuthor, status }
  */
 exports.sendBookRequestStatusToUser = async (toEmail, request) => {
+  const statusColors = {
+    APPROVED: "#27ae60",
+    REJECTED: "#e74c3c",
+    PENDING: "#f39c12",
+  };
+
+  const statusIcons = {
+    APPROVED: "✅",
+    REJECTED: "❌",
+    PENDING: "⏳",
+  };
+
+  const statusMessages = {
+    APPROVED:
+      "Great news! Your request has been approved. We will add this title to the store soon.",
+    REJECTED: "Unfortunately, your request was rejected by the seller.",
+    PENDING: "Your request is still pending review.",
+  };
+
   const mailOptions = {
     from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
     to: toEmail,
     subject: `📢 Update on Your Book Request: ${request.requestedTitle}`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px; display:block; margin:auto;" />
-        <h2 style="text-align:center;">Your Book Request Update</h2>
-        <p>We have an update regarding your requested book:</p>
-
-        <ul style="font-size: 16px; color: #333;">
-          <li><b>Title:</b> ${request.requestedTitle}</li>
-          <li><b>Author:</b> ${request.requestedAuthor}</li>
-          <li><b>Status:</b> ${request.status}</li>
-        </ul>
-
-        ${
-          request.status === "APPROVED"
-            ? `<p style="font-size: 16px; color: green;">✅ Great news! Your request has been approved. We will add this title to the store soon.</p>`
-            : request.status === "REJECTED"
-              ? `<p style="font-size: 16px; color: red;">❌ Unfortunately, your request was rejected by the seller.</p>`
-              : `<p style="font-size: 16px; color: orange;">⏳ Your request is still pending review.</p>`
-        }
-
-        <p style="font-size: 14px; color: #888;">Thank you for your continued partnership.</p>
-
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #e8e8e8; border-radius: 12px; background: #fafafa;">
+        <div style="text-align: center; margin-bottom: 25px;">
+          <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:150px;"/>
+        </div>
+        
+        <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+          <h2 style="color: #2c3e50; text-align: center; margin-bottom: 25px; font-weight: 600;">Book Request Update</h2>
+          
+          <p style="color: #34495e; margin-bottom: 20px;">We have an update regarding your requested book:</p>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+            <ul style="list-style: none; padding: 0; margin: 0; color: #34495e;">
+              <li style="margin-bottom: 12px; padding-left: 0;"><b>Title:</b> ${request.requestedTitle}</li>
+              <li style="margin-bottom: 12px; padding-left: 0;"><b>Author:</b> ${request.requestedAuthor}</li>
+              <li style="margin-bottom: 0; padding-left: 0;"><b>Status:</b> <span style="color: ${statusColors[request.status]}; font-weight: 500;">${request.status}</span></li>
+            </ul>
+          </div>
+          
+          <div style="background: ${statusColors[request.status]}15; padding: 16px; border-radius: 8px; border-left: 4px solid ${statusColors[request.status]}; margin-bottom: 25px;">
+            <p style="margin: 0; color: ${statusColors[request.status]}; font-weight: 500;">${statusIcons[request.status]} ${statusMessages[request.status]}</p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="font-size: 14px; color: #7f8c8d;">Thank you for your continued partnership.</p>
+          </div>
+        </div>
       </div>
     `,
   };
