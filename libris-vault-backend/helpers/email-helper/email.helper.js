@@ -122,39 +122,34 @@ exports.sendPromotionEmail = async (toEmail, promotion) => {
  * @param {string} toEmail - Seller email
  * @param {object} request - Request details { requestedTitle, requestedAuthor, message, status }
  */
-exports.sendBookRequestNotificationToSeller = async (toEmail, request) => {
+exports.sendBookRequestNotificationToSeller = async (to, data) => {
+  const {
+    storeName,
+    userName,
+    requestedTitle,
+    requestedAuthor,
+    message,
+    status,
+  } = data;
+
   const mailOptions = {
-    from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject: "📚 New Book Request from a User",
+    from: process.env.SMTP_USER,
+    to,
+    subject: `New Book Request for ${storeName}`,
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-        <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width:120px; display:block; margin:auto;" />
-        <h2 style="text-align:center;">New Book Request</h2>
-        <p>A user has requested a new book in your store:</p>
-
-        <ul style="font-size: 16px; color: #333;">
-          <li><b>Title:</b> ${request.requestedTitle}</li>
-          <li><b>Author:</b> ${request.requestedAuthor}</li>
-          <li><b>Message:</b> ${request.message || "N/A"}</li>
-          <li><b>Status:</b> ${request.status}</li>
-        </ul>
-
-        <p style="font-size: 14px; color: #888;">Please check your store inbox to manage this request.</p>
-      </div>
+      <h2>📚 New Book Request</h2>
+      <p><strong>User:</strong> ${userName}</p>
+      <p><strong>Store:</strong> ${storeName}</p>
+      <p><strong>Title:</strong> ${requestedTitle}</p>
+      <p><strong>Author:</strong> ${requestedAuthor}</p>
+      <p><strong>Message:</strong> ${message || "No additional message"}</p>
+      <p><strong>Status:</strong> ${status}</p>
+      <hr />
+      <p>This message was generated to inform you of a customer request.</p>
     `,
   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-    return true;
-  } catch (err) {
-    console.error(
-      "Failed to send Book Request Notification to Seller:",
-      err.message
-    );
-    return false;
-  }
+  await transporter.sendMail(mailOptions);
 };
 
 /**
@@ -187,7 +182,8 @@ exports.sendBookRequestStatusToUser = async (toEmail, request) => {
               : `<p style="font-size: 16px; color: orange;">⏳ Your request is still pending review.</p>`
         }
 
-        <p style="font-size: 14px; color: #888;">Thank you for using LIBRIS VAULT.</p>
+        <p style="font-size: 14px; color: #888;">Thank you for your continued partnership.</p>
+
       </div>
     `,
   };
