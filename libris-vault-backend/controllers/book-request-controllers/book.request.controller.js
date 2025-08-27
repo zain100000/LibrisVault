@@ -15,17 +15,23 @@ exports.requestBook = async (req, res) => {
     const { storeId, requestedTitle, requestedAuthor, message } = req.body;
     const userId = req.user.id;
 
-    // populate seller email
-    const store = await Store.findById(storeId).populate(
-      "seller",
-      "email storeName"
-    );
+    // ✅ Fetch store with seller details
+    const store = await Store.findById(storeId).populate("seller", "email");
     if (!store) {
       return res
         .status(404)
         .json({ success: false, message: "Store not found" });
     }
 
+    // ✅ Fetch user info (to get userName & email for notification)
+    const user = await User.findById(userId).select("userName email");
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // ✅ Create book request
     const request = await BookRequest.create({
       user: userId,
       store: storeId,
@@ -42,7 +48,7 @@ exports.requestBook = async (req, res) => {
       setImmediate(async () => {
         try {
           await sendBookRequestNotificationToSeller(store.seller.email, {
-            userName: user.userName,
+            userName: user.userName, // ✅ now defined
             storeName: store.storeName,
             requestedTitle,
             requestedAuthor,
@@ -61,9 +67,11 @@ exports.requestBook = async (req, res) => {
       bookRequests: request,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ success: false, message: "Server Error", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: err.message,
+    });
   }
 };
 
