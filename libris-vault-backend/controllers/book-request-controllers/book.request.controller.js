@@ -42,6 +42,7 @@ exports.requestBook = async (req, res) => {
       setImmediate(async () => {
         try {
           await sendBookRequestNotificationToSeller(store.seller.email, {
+            userName: user.userName,
             storeName: store.storeName,
             requestedTitle,
             requestedAuthor,
