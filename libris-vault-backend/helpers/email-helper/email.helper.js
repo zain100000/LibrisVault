@@ -303,7 +303,7 @@
 //       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
 //         <h2 style="color:#1a73e8; text-align:center;">New Order Notification</h2>
 
-//         <p>You have received a new order from <strong>${user.name}</strong> (${user.email}).</p>
+//         <p>You have received a new order from <strong>${user.name}</strong></p>
 
 //         <div style="margin:20px 0; padding:15px; background:#f9f9f9; border-radius:8px;">
 //           <p><strong>Order ID:</strong> ${order._id}</p>
@@ -545,7 +545,7 @@ exports.sendNewOrderNotificationToSeller = async (toEmail, order, user) => {
           <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" style="width:140px;" />
         </div>
         <h2 style="text-align:center; color:#1a73e8;">New Order Notification</h2>
-        <p>You have received a new order from <strong>${user.userName}</strong> (${user.email}).</p>
+        <p>You have received a new order from <strong>${user.userName}</strong></p>
         <div style="background:white; padding:20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.05); margin-bottom:20px;">
           <p><strong>Order ID:</strong> ${order._id}</p>
           <p><strong>Total Amount:</strong> $${order.totalAmount}</p>
