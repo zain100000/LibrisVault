@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const axios = require("axios");
 const Book = require("../../models/book-models/book.model");
-const Seller = require("../../models/seller.models/seller-model");
+const Seller = require("../../models/seller-models/seller-model");
 const cloudinaryUpload = require("../../utilities/cloudinary/cloudinary.utility");
 const {
   getActiveSystemWidePromotion,

@@ -1,6 +1,6 @@
 const cron = require("node-cron");
 const Promotion = require("../../models/promotion-models/promotion.model");
-const Seller = require("../../models/seller.models/seller-model");
+const Seller = require("../../models/seller-models/seller-model");
 const Book = require("../../models/book-models/book.model");
 
 exports.getActiveSystemWidePromotion = async () => {

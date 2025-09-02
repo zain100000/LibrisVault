@@ -236,3 +236,102 @@ exports.sendBookRequestStatusToUser = async (toEmail, request) => {
     return false;
   }
 };
+
+/**
+ * Send Order Confirmation Email to User
+ * @param {string} toEmail - User email
+ * @param {object} order - Order details
+ */
+exports.sendOrderConfirmationToUser = async (toEmail, order) => {
+  const mailOptions = {
+    from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "✅ Your Order Has Been Placed Successfully",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <h2 style="color:#1a73e8; text-align:center;">Thank You for Your Order!</h2>
+        
+        <p>Hello,</p>
+        <p>Your order has been placed successfully. Here are the details:</p>
+        
+        <div style="margin:20px 0; padding:15px; background:#f9f9f9; border-radius:8px;">
+          <p><strong>Order ID:</strong> ${order._id}</p>
+          <p><strong>Total Amount:</strong> $${order.totalAmount}</p>
+          <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+          <p><strong>Order Status:</strong> ${order.status}</p>
+        </div>
+
+        <h3>Items Ordered:</h3>
+        <ul>
+          ${order.items
+            .map(
+              (item) =>
+                `<li>${item.bookTitle} (x${item.quantity}) - $${item.price}</li>`
+            )
+            .join("")}
+        </ul>
+
+        <p style="font-size: 14px; color: #888;">We’ll notify you when your order is shipped.</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (err) {
+    console.error(
+      "Failed to send order confirmation email to user:",
+      err.message
+    );
+    return false;
+  }
+};
+
+/**
+ * Send New Order Notification Email to Seller
+ * @param {string} toEmail - Seller email
+ * @param {object} order - Order details
+ * @param {object} user - User details
+ */
+exports.sendNewOrderNotificationToSeller = async (toEmail, order, user) => {
+  const mailOptions = {
+    from: `"LIBRIS VAULT" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `📦 New Order Received (Order ID: ${order._id})`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <h2 style="color:#1a73e8; text-align:center;">New Order Notification</h2>
+        
+        <p>You have received a new order from <strong>${user.name}</strong> (${user.email}).</p>
+        
+        <div style="margin:20px 0; padding:15px; background:#f9f9f9; border-radius:8px;">
+          <p><strong>Order ID:</strong> ${order._id}</p>
+          <p><strong>Total Amount:</strong> $${order.totalAmount}</p>
+          <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+          <p><strong>Shipping Address:</strong> ${order.shippingAddress}</p>
+        </div>
+
+        <h3>Items Ordered:</h3>
+        <ul>
+          ${order.items
+            .map(
+              (item) =>
+                `<li>${item.bookTitle} (x${item.quantity}) - $${item.price}</li>`
+            )
+            .join("")}
+        </ul>
+
+        <p style="font-size: 14px; color: #888;">Please process this order promptly.</p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (err) {
+    console.error("Failed to send new order email to seller:", err.message);
+    return false;
+  }
+};

@@ -5,7 +5,7 @@ const {
   canResendOTP,
   removeOTP,
 } = require("../../utilities/otp/otp.utility");
-const Seller = require("../../models/seller.models/seller-model");
+const Seller = require("../../models/seller-models/seller-model");
 const { sendOTPEmail } = require("../../helpers/email-helper/email.helper");
 
 let verifiedSellerPhones = new Set();

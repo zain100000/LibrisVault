@@ -1,5 +1,5 @@
 const Promotion = require("../../models/promotion-models/promotion.model");
-const Seller = require("../../models/seller.models/seller-model");
+const Seller = require("../../models/seller-models/seller-model");
 const User = require("../../models/user-models/user.model");
 const {
   sendPromotionEmail,

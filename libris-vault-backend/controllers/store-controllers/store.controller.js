@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const Seller = require("../../models/seller.models/seller-model");
+const Seller = require("../../models/seller-models/seller-model");
 const Store = require("../../models/store-models/store.model");
 const {
   uploadToCloudinary,

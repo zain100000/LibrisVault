@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Seller = require("../../models/seller.models/seller-model");
+const Seller = require("../../models/seller-models/seller-model");
 const profilePictureUpload = require("../../utilities/cloudinary/cloudinary.utility");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
