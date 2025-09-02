@@ -9,7 +9,7 @@ const {
 } = require("../../helpers/email-helper/email.helper");
 
 /**
- * @description Helper functions
+ * Helper: Handle Buy Now Order
  */
 const handleBuyNowOrder = async (bookId, quantity) => {
   const book = await Book.findById(bookId);
@@ -32,6 +32,9 @@ const handleBuyNowOrder = async (bookId, quantity) => {
   return { items, totalAmount };
 };
 
+/**
+ * Helper: Handle Cart Order
+ */
 const handleCartOrder = async (userId) => {
   const user = await User.findById(userId).populate("cart.productId");
   if (!user || !user.cart || user.cart.length === 0) {
@@ -57,7 +60,7 @@ const handleCartOrder = async (userId) => {
     0
   );
 
-  // clear cart after placing order
+  // Clear cart after placing order
   user.cart = [];
   await user.save();
 
@@ -65,9 +68,7 @@ const handleCartOrder = async (userId) => {
 };
 
 /**
- * @description Controller for placing the order (Direct + Indirect Order)
- * @route POST /api/order/place-order
- * @access Private (user must be logged in)
+ * Controller: Place Order
  */
 exports.placeOrder = async (req, res) => {
   try {
@@ -78,6 +79,7 @@ exports.placeOrder = async (req, res) => {
     let items = [];
     let totalAmount = 0;
 
+    // Determine order type
     if (type === "BUY_NOW") {
       ({ items, totalAmount } = await handleBuyNowOrder(bookId, quantity));
     } else if (type === "CART") {
@@ -88,14 +90,11 @@ exports.placeOrder = async (req, res) => {
         .json({ success: false, message: "Invalid order type" });
     }
 
-    let paymentStatus = "PENDING";
-    let orderStatus = "ORDER_RECEIVED";
+    const paymentStatus =
+      paymentMethod === "CASH_ON_DELIVERY" ? "PENDING" : "PENDING";
+    const orderStatus = "ORDER_RECEIVED";
 
-    if (paymentMethod === "CASH_ON_DELIVERY") {
-      paymentStatus = "PENDING";
-      orderStatus = "ORDER_RECEIVED";
-    }
-
+    // Create Order
     const order = await Order.create({
       user: userId,
       store: storeId,
@@ -112,20 +111,38 @@ exports.placeOrder = async (req, res) => {
 
     // Push order to seller
     const store = await Store.findById(storeId).populate("seller");
-    if (store) {
+    if (store && store.seller) {
       await Seller.findByIdAndUpdate(store.seller._id, {
         $push: { orders: order._id },
       });
     }
 
     // -------------------------
-    // 📧 Send Email Notifications
+    // Populate books for email
     // -------------------------
+    const populatedOrder = await Order.findById(order._id)
+      .populate({ path: "items.book", select: "title price" })
+      .populate("user", "userName email");
+
+    const orderForEmail = {
+      ...populatedOrder._doc,
+      items: populatedOrder.items.map((item) => ({
+        ...item._doc,
+        bookTitle: item.book.title,
+      })),
+    };
+
     const user = await User.findById(userId);
-    await sendOrderConfirmationToUser(user.email, order);
+
+    // Send Email Notifications
+    await sendOrderConfirmationToUser(user.email, orderForEmail);
 
     if (store && store.seller) {
-      await sendNewOrderNotificationToSeller(store.seller.email, order, user);
+      await sendNewOrderNotificationToSeller(
+        store.seller.email,
+        orderForEmail,
+        user
+      );
     }
 
     return res.status(201).json({
