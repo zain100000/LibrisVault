@@ -292,8 +292,8 @@ const Seller = require("../../models/seller-models/seller-model");
 const {
   sendOrderConfirmationToUser,
   sendNewOrderNotificationToSeller,
-  sendOrderCancellationToUser,
-  sendOrderCancellationToSeller,
+  sendOrderCancelledToUser,
+  sendOrderCancelledToSeller,
 } = require("../../helpers/email-helper/email.helper");
 
 /**
@@ -528,9 +528,9 @@ exports.cancelOrder = async (req, res) => {
     };
 
     // Send emails
-    await sendOrderCancellationToUser(order.user.email, orderForEmail);
+    await sendOrderCancelledToUser(order.user.email, orderForEmail);
     if (order.store && order.store.seller) {
-      await sendOrderCancellationToSeller(
+      await sendOrderCancelledToSeller(
         order.store.seller.email,
         orderForEmail,
         order.user
