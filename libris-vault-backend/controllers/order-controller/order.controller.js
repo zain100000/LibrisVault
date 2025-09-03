@@ -115,6 +115,7 @@ exports.placeOrder = async (req, res) => {
     await User.findByIdAndUpdate(userId, {
       $push: {
         orders: {
+          orderId: order._id, // ✅ store real order id
           status: order.status,
           placedAt: new Date(),
         },
@@ -127,6 +128,7 @@ exports.placeOrder = async (req, res) => {
       await Seller.findByIdAndUpdate(store.seller._id, {
         $push: {
           orders: {
+            orderId: order._id, // ✅ store real order id
             status: order.status,
             placedAt: new Date(),
           },
@@ -178,7 +180,7 @@ exports.placeOrder = async (req, res) => {
 /**
  * @description Controller: Get All Orders for User
  * @route GET /api/order/get-all-orders
- * @access Public
+ * @access Private
  */
 exports.getAllOrders = async (req, res) => {
   try {
@@ -187,7 +189,7 @@ exports.getAllOrders = async (req, res) => {
       .populate({ path: "items.book", select: "title price discountPrice" })
       .populate({ path: "store", select: "storeName storeLogo" })
       .populate({ path: "user", select: "userName email" })
-      .sort({ createdAt: -1 }); // latest orders firs
+      .sort({ createdAt: -1 }); // latest first
     return res.status(200).json({
       success: true,
       message: "Orders fetched successfully",
@@ -245,13 +247,15 @@ exports.cancelOrder = async (req, res) => {
     order.status = "CANCELLED";
     await order.save();
 
+    // ✅ Update in User.orders
     await User.updateOne(
-      { _id: userId, "orders.id": order._id },
+      { _id: userId, "orders.orderId": order._id },
       { $set: { "orders.$.status": "CANCELLED" } }
     );
 
+    // ✅ Update in Seller.orders
     await Seller.updateOne(
-      { _id: order.store.seller, "orders.id": order._id },
+      { _id: order.store.seller._id, "orders.orderId": order._id },
       { $set: { "orders.$.status": "CANCELLED" } }
     );
 
