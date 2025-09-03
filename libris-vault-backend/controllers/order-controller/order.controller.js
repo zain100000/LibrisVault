@@ -397,13 +397,27 @@ exports.placeOrder = async (req, res) => {
     });
 
     // Push order to user
-    await User.findByIdAndUpdate(userId, { $push: { orders: order._id } });
+    await User.findByIdAndUpdate(userId, {
+      $push: {
+        orders: {
+          orderId: order._id,
+          status: order.status,
+          placedAt: new Date(),
+        },
+      },
+    });
 
     // Push order to seller
     const store = await Store.findById(storeId).populate("seller");
     if (store && store.seller) {
       await Seller.findByIdAndUpdate(store.seller._id, {
-        $push: { orders: order._id },
+        $push: {
+          orders: {
+            orderId: order._id,
+            status: order.status,
+            placedAt: new Date(),
+          },
+        },
       });
     }
 
@@ -517,6 +531,16 @@ exports.cancelOrder = async (req, res) => {
     // Update order status
     order.status = "CANCELLED";
     await order.save();
+
+    await User.updateOne(
+      { _id: userId, "orders.orderId": order._id },
+      { $set: { "orders.$.status": "CANCELLED" } }
+    );
+
+    await Seller.updateOne(
+      { _id: order.store.seller, "orders.orderId": order._id },
+      { $set: { "orders.$.status": "CANCELLED" } }
+    );
 
     // Prepare order object for email
     const orderForEmail = {
