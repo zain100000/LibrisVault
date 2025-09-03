@@ -94,16 +94,13 @@ exports.placeOrder = async (req, res) => {
         .json({ success: false, message: "Invalid order type" });
     }
 
-    // Set status & paymentStatus based on method
+    // Always start with ORDER_RECEIVED
     let paymentStatus = "PENDING";
     let orderStatus = "ORDER_RECEIVED";
 
-    if (paymentMethod === "CASH_ON_DELIVERY") {
+    // For Stripe, we will later update to TO_PAY once session is created
+    if (paymentMethod === "STRIPE") {
       paymentStatus = "PENDING";
-      orderStatus = "TO_SHIP"; // COD confirmed, seller can ship
-    } else if (paymentMethod === "STRIPE") {
-      paymentStatus = "PENDING";
-      orderStatus = "TO_PAY"; // User must complete Stripe payment
     }
 
     // Create Order
