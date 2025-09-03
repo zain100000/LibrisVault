@@ -54,10 +54,9 @@ const OrderSchema = new mongoose.Schema(
       type: String,
       enum: [
         "ORDER_RECEIVED", // Order placed, waiting for confirmation
-        "PAYMENT_CONFIRMED", // Stripe successful or COD confirmed
-        "PREPARING", // Seller preparing the order
-        "READY_FOR_PICKUP", // Ready for courier/user pickup
-        "PICKED_UP", // Courier picked up the book
+        "TO_PAY", // Waiting for payment
+        "TO_SHIP", // Payment done, waiting for seller to ship
+        "TO_RECEIVE", // Shipped, waiting for customer to receive
         "COMPLETED", // Delivered successfully
         "CANCELLED", // Cancelled before dispatch
         "REFUNDED", // Refunded after payment

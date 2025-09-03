@@ -6,6 +6,8 @@ const Seller = require("../../models/seller-models/seller-model");
 const {
   sendOrderConfirmationToUser,
   sendNewOrderNotificationToSeller,
+  sendOrderCancelledToUser,
+  sendOrderCancelledToSeller,
 } = require("../../helpers/email-helper/email.helper");
 
 /**
@@ -68,7 +70,9 @@ const handleCartOrder = async (userId) => {
 };
 
 /**
- * Controller: Place Order
+ * @description Controller: Place Order
+ * @route POST/api/order/place-order
+ * @access Public
  */
 exports.placeOrder = async (req, res) => {
   try {
@@ -90,9 +94,17 @@ exports.placeOrder = async (req, res) => {
         .json({ success: false, message: "Invalid order type" });
     }
 
-    const paymentStatus =
-      paymentMethod === "CASH_ON_DELIVERY" ? "PENDING" : "PENDING";
-    const orderStatus = "ORDER_RECEIVED";
+    // Set status & paymentStatus based on method
+    let paymentStatus = "PENDING";
+    let orderStatus = "ORDER_RECEIVED";
+
+    if (paymentMethod === "CASH_ON_DELIVERY") {
+      paymentStatus = "PENDING";
+      orderStatus = "TO_SHIP"; // COD confirmed, seller can ship
+    } else if (paymentMethod === "STRIPE") {
+      paymentStatus = "PENDING";
+      orderStatus = "TO_PAY"; // User must complete Stripe payment
+    }
 
     // Create Order
     const order = await Order.create({
@@ -147,11 +159,110 @@ exports.placeOrder = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Order placed successfully & email notifications sent",
+      message: "Order placed successfully!",
       order,
     });
   } catch (err) {
     console.error("Error placing order:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * @description Controller: Get All Orders for User
+ * @route GET /api/order/get-all-orders
+ * @access Public
+ */
+exports.getAllOrders = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const orders = await Order.find({ user: userId })
+      .populate({ path: "items.book", select: "title price discountPrice" })
+      .populate({ path: "store", select: "storeName storeLogo" })
+      .populate({ path: "user", select: "userName email" })
+      .sort({ createdAt: -1 }); // latest orders first
+
+    return res.status(200).json({
+      success: true,
+      message: "Orders fetched successfully",
+      orders,
+    });
+  } catch (err) {
+    console.error("Error fetching orders:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: err.message,
+    });
+  }
+};
+
+/**
+ * @description Controller: Cancel Order
+ * @route PATCH /api/order/cancel-order/:id
+ * @access Private (User must be logged in)
+ */
+exports.cancelOrder = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    // Find order for this user
+    const order = await Order.findOne({ _id: id, user: userId }).populate(
+      "items.book" // so we can access bookTitle in emails
+    );
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    // Check if order is already in a final state
+    if (["CANCELLED", "REFUNDED", "COMPLETED"].includes(order.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "This order cannot be cancelled.",
+      });
+    }
+
+    // Prevent cancellation if shipped or out for delivery
+    if (["TO_SHIP", "TO_RECEIVE"].includes(order.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "This order has already been shipped and cannot be cancelled.",
+      });
+    }
+
+    // Update order status
+    order.status = "CANCELLED";
+    await order.save();
+
+    // Get user & seller info
+    const user = await User.findById(userId).select("userName email");
+    const seller = await Seller.findById(order.seller).select(
+      "storeName email"
+    );
+
+    // Send email notifications
+    if (user?.email) {
+      await sendOrderCancelledToUser(user.email, order);
+    }
+    if (seller?.email) {
+      await sendOrderCancelledToSeller(seller.email, order, user);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Order cancelled successfully",
+      order,
+    });
+  } catch (err) {
+    console.error("Error cancelling order:", err.message);
     return res.status(500).json({
       success: false,
       message: "Server Error",

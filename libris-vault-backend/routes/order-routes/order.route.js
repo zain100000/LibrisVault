@@ -8,4 +8,14 @@ const orderController = require("../../controllers/order-controller/order.contro
  */
 router.post("/place-order", authMiddleware, orderController.placeOrder);
 
+/**
+ * @description Route to get all orders
+ */
+router.get("/get-all-orders", authMiddleware, orderController.getAllOrders);
+
+/**
+ * @description Route to cancel the order
+ */
+router.patch("/cancel-order/:id", authMiddleware, orderController.cancelOrder);
+
 module.exports = router;

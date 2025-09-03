@@ -76,8 +76,29 @@ const SellerSchema = new mongoose.Schema(
 
     orders: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Order",
+        orderId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Order",
+        },
+
+        status: {
+          type: String,
+          enum: [
+            "ORDER_RECEIVED", // Order placed, waiting for confirmation
+            "TO_PAY", // Waiting for payment
+            "TO_SHIP", // Payment done, waiting for seller to ship
+            "TO_RECEIVE", // Shipped, waiting for customer to receive
+            "COMPLETED", // Delivered successfully
+            "CANCELLED", // Cancelled before dispatch
+            "REFUNDED", // Refunded after payment
+          ],
+          default: "ORDER_RECEIVED",
+        },
+
+        placedAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
 
