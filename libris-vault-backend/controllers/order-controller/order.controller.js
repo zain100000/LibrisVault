@@ -212,10 +212,12 @@ exports.cancelOrder = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // Find order for this user
-    const order = await Order.findOne({ _id: id, user: userId }).populate(
-      "items.book" // so we can access bookTitle in emails
-    );
+    // Find order & populate necessary fields
+    const order = await Order.findOne({ _id: id, user: userId })
+      .populate("items.book", "title price") // so we get book title/price
+      .populate("store", "seller") // so we can fetch seller later
+      .populate("user", "userName email"); // so user details are available
+
     if (!order) {
       return res
         .status(404)
@@ -242,23 +244,37 @@ exports.cancelOrder = async (req, res) => {
     order.status = "CANCELLED";
     await order.save();
 
-    // Get user & seller info
-    const user = await User.findById(userId).select("userName email");
-    const seller = await Seller.findById(order.seller).select(
-      "storeName email"
-    );
+    // Prepare order for email with bookTitle
+    const orderForEmail = {
+      ...order._doc,
+      items: order.items.map((item) => ({
+        ...item._doc,
+        bookTitle: item.book?.title || "Unknown Book",
+      })),
+    };
 
-    // Send email notifications
-    if (user?.email) {
-      await sendOrderCancelledToUser(user.email, order);
+    // Send email to user
+    if (order.user?.email) {
+      await sendOrderCancelledToUser(order.user.email, orderForEmail);
     }
-    if (seller?.email) {
-      await sendOrderCancelledToSeller(seller.email, order, user);
+
+    // Send email to seller
+    if (order.store?.seller) {
+      const seller = await Seller.findById(order.store.seller).select(
+        "storeName email"
+      );
+      if (seller?.email) {
+        await sendOrderCancelledToSeller(
+          seller.email,
+          orderForEmail,
+          order.user
+        );
+      }
     }
 
     return res.status(200).json({
       success: true,
-      message: "Order cancelled successfully",
+      message: "Order cancelled successfully & notifications sent",
       order,
     });
   } catch (err) {
