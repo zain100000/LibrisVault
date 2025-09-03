@@ -278,3 +278,25 @@ exports.sendOrderCancelledToSeller = async (toEmail, order, user) => {
     `,
   });
 };
+
+// ===== Order Updation Notification to User =====
+exports.sendOrderStatusUpdateToUser = async (toEmail, order) => {
+  return sendEmail({
+    to: toEmail,
+    subject: `📦 Order Update - ${order.status}`,
+    html: `
+     <div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width:600px; margin:auto; padding:30px; background:#fff8e6; border-radius:12px;">
+        <div style="text-align:center; margin-bottom:25px;">
+          <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" style="width:140px;" />
+        </div>
+        <h2 style="text-align:center; color:#1a73e8;">Order Status Update</h2>
+        <p><strong>Order ID:</strong> ${order.orderId}</p>
+        <p><strong>New Status:</strong> ${order.status}</p>
+        <p><strong>Total Amount:</strong> $${order.totalAmount}</p>
+        <p style="text-align:center; color:#888; margin-top:20px; font-size:14px;">
+          Thank you for shopping with LIBRIS VAULT.
+        </p>
+      </div>
+    `,
+  });
+};
