@@ -348,7 +348,7 @@ const getEmailTemplate = (content, title = "") => `
                     <!-- Header -->
                     <tr>
                         <td style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); padding: 30px; text-align: center;">
-                            <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756135273/LibrisVault/logo/logo_uddfxb.jpg" alt="LIBRIS VAULT" style="width: 160px; height: auto;"/>
+                            <img src="https://res.cloudinary.com/dd524q9vc/image/upload/v1756914446/LibrisVault/logo/logo_zql89r.png" alt="LIBRIS VAULT" style="width: 160px; height: auto;"/>
                             <h1 style="color: white; font-size: 24px; margin: 15px 0 0 0; font-weight: 600;">LIBRIS VAULT</h1>
                         </td>
                     </tr>
