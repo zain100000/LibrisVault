@@ -291,7 +291,7 @@ exports.cancelOrder = async (req, res) => {
 
 /**
  * @description Seller updates order status
- * @route PATCH /api/order/seller/:orderId/update-order-status
+ * @route PATCH /api/order/seller/update-order-status/:orderId
  * @access Private (Seller only)
  */
 exports.updateOrderStatus = async (req, res) => {

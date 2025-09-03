@@ -18,4 +18,13 @@ router.get("/get-all-orders", authMiddleware, orderController.getAllOrders);
  */
 router.patch("/cancel-order/:id", authMiddleware, orderController.cancelOrder);
 
+/**
+ * @description Route to update status of the order
+ */
+router.patch(
+  "/seller/update-order-status/:orderId",
+  authMiddleware,
+  orderController.updateOrderStatus
+);
+
 module.exports = router;
