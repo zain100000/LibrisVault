@@ -65,13 +65,13 @@ exports.addReview = async (req, res) => {
 
 /**
  * @description Controller for getting reviews of the book
- * @route GET /api/review/get-book-review
+ * @route GET /api/review/get-book-review/:bookId
  * @access Public
  */
 exports.getReviews = async (req, res) => {
   try {
-    const { id } = req.params;
-    const book = await Inventory.findById(id).populate(
+    const { bookId } = req.params;
+    const book = await Inventory.findById(bookId).populate(
       "reviews.userId",
       "userName profilePicture"
     );
@@ -93,12 +93,12 @@ exports.getReviews = async (req, res) => {
 
 /**
  * @description Controller for updating review of the book
- * @route PATCH /api/review/update-review/:id
+ * @route PATCH /api/review/update-review/:bookId
  * @access Public
  */
 exports.updateReview = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { bookId } = req.params;
     const { review } = req.body;
     const userId = req.user.id;
 
@@ -114,7 +114,7 @@ exports.updateReview = async (req, res) => {
       });
     }
 
-    const book = await Inventory.findById(id);
+    const book = await Inventory.findById(bookId);
     if (!book) {
       return res
         .status(404)
@@ -146,15 +146,15 @@ exports.updateReview = async (req, res) => {
 
 /**
  * @description Controller for deleting reviews on the book
- * @route DELETE /api/review/delete-review/:id
+ * @route DELETE /api/review/delete-review/:bookId
  * @access Public
  */
 exports.deleteReview = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { bookId } = req.params;
     const userId = req.user.id;
 
-    const book = await Inventory.findById(id);
+    const book = await Inventory.findById(bookId);
     if (!book)
       return res
         .status(404)

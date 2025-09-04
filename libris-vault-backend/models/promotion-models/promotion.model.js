@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 /**
- * @description Schema for Promotion
+ * @schema PromotionSchema
+ * @description Schema representing promotional campaigns, including discounts that may apply system-wide, to specific sellers, or to specific books.
  */
-
 const PromotionSchema = new mongoose.Schema(
   {
     scope: {
@@ -45,7 +45,7 @@ const PromotionSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["INACTIVE", "ACTIVE", "REJECTED", "EXPIRED"],
-      default: "INACTIVE", 
+      default: "INACTIVE",
     },
   },
   { timestamps: true }

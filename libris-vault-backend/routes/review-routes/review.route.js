@@ -3,30 +3,32 @@ const router = express.Router();
 const { authMiddleware } = require("../../middlewares/auth.middleware");
 const reviewController = require("../../controllers/review-controllers/review.controller");
 
-//------------------------------ REVIEW ROUTES  ----------------------------------
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-
 /**
- * @description Add Review 
+ * @description Route to add a new review for a book.
  */
 router.post("/add-review", authMiddleware, reviewController.addReview);
 
 /**
- * @description Get Reviews of book
+ * @description Route to get all reviews for a specific book.
  */
-router.get("/get-book-review/:id", reviewController.getReviews);
+router.get("/get-book-review/:bookId", reviewController.getReviews);
 
 /**
- * @description Update Review 
+ * @description Route to update an existing review.
  */
-router.patch("/update-review/:id", authMiddleware, reviewController.updateReview);
+router.patch(
+  "/update-review/:reviewId",
+  authMiddleware,
+  reviewController.updateReview
+);
 
 /**
- * @description Delete Review 
+ * @description Route to delete a review.
  */
-router.delete("/delete-review/:id", authMiddleware, reviewController.deleteReview);
-
+router.delete(
+  "/delete-review/:reviewId",
+  authMiddleware,
+  reviewController.deleteReview
+);
 
 module.exports = router;

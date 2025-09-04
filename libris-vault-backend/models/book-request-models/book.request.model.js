@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+/**
+ * @schema BookRequestSchema
+ * @description Schema representing a user's request for a book from a store.
+ */
 const BookRequestSchema = new mongoose.Schema(
   {
     user: {

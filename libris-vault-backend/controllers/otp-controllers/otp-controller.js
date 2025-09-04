@@ -12,7 +12,7 @@ let verifiedSellerPhones = new Set();
 exports.verifiedSellerPhones = verifiedSellerPhones;
 
 /**
- * @description Send OTP to seller's phone for verification
+ * @description Controller to send a one-time password (OTP) to a seller's phone number for verification.
  * @route POST /api/otp/send-otp
  * @access Public
  */
@@ -74,7 +74,7 @@ exports.sendSellerOTP = async (req, res) => {
 };
 
 /**
- * @description Verify seller's phone using OTP
+ * @description Controller to verify a seller's phone number using a provided one-time password (OTP).
  * @route POST /api/otp/verify-otp
  * @access Public
  */

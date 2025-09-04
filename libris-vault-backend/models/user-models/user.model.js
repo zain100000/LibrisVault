@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+/**
+ * @schema UserSchema
+ * @description Schema representing customer accounts, including authentication details, profile information, cart, orders, and account security.
+ */
 const userSchema = new mongoose.Schema(
   {
     profilePicture: {
@@ -72,13 +76,13 @@ const userSchema = new mongoose.Schema(
         status: {
           type: String,
           enum: [
-            "ORDER_RECEIVED", // Order placed, waiting for confirmation
-            "TO_PAY", // Waiting for payment
-            "TO_SHIP", // Payment done, waiting for seller to ship
-            "TO_RECEIVE", // Shipped, waiting for customer to receive
-            "COMPLETED", // Delivered successfully
-            "CANCELLED", // Cancelled before dispatch
-            "REFUNDED", // Refunded after payment
+            "ORDER_RECEIVED",
+            "TO_PAY",
+            "TO_SHIP",
+            "TO_RECEIVE",
+            "COMPLETED",
+            "CANCELLED",
+            "REFUNDED",
           ],
           default: "ORDER_RECEIVED",
         },

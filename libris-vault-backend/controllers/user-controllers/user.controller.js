@@ -3,7 +3,10 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/user-models/user.model");
-const profilePictureUpload = require("../../utilities/cloudinary/cloudinary.utility");
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../../utilities/cloudinary/cloudinary.utility");
 const {
   passwordRegex,
   hashPassword,
@@ -12,21 +15,12 @@ const {
   generateSecureToken,
 } = require("../../helpers/token-helper/token.helper");
 const {
-  uploadToCloudinary,
-} = require("../../utilities/cloudinary/cloudinary.utility");
-const {
   sendPasswordResetEmail,
 } = require("../../helpers/email-helper/email.helper");
-const { v2: cloudinary } = require("cloudinary");
-
-//------------------------------ USER BASE FUNCTIONS  ------------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 /**
- * @description User registration
- * @route POST /api/user/signup-user
+ * @description Controller for user registration
+ * @route POST /api/user/signup
  * @access Public
  */
 exports.registerUser = async (req, res) => {
@@ -66,7 +60,7 @@ exports.registerUser = async (req, res) => {
 
     let profilePictureUrl = null;
     if (req.files?.profilePicture) {
-      const uploadResult = await profilePictureUpload.uploadToCloudinary(
+      const uploadResult = await uploadToCloudinary(
         req.files.profilePicture[0],
         "profilePicture"
       );
@@ -103,7 +97,7 @@ exports.registerUser = async (req, res) => {
 
     if (uploadedFileUrl) {
       try {
-        await profilePictureUpload.deleteFromCloudinary(uploadedFileUrl);
+        await deleteFromCloudinary(uploadedFileUrl);
       } catch (cloudErr) {
         console.error("❌ Failed to rollback Cloudinary upload:", cloudErr);
       }
@@ -131,8 +125,8 @@ exports.registerUser = async (req, res) => {
 };
 
 /**
- * @description User login
- * @route POST /api/user/signin-user
+ * @description Controller for user login
+ * @route POST /api/user/signin
  * @access Public
  */
 exports.loginUser = async (req, res) => {
@@ -261,15 +255,17 @@ exports.loginUser = async (req, res) => {
 };
 
 /**
- * @description Get User by ID
- * @route GET /api/user/get-user-by-id/:id
+ * @description Controller to get user by ID
+ * @route GET /api/user/get-user/:userId
  * @access Private (User)
  */
 exports.getUserById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    const user = await User.findById(id).select("-password -__v -refreshToken");
+    const user = await User.findById(userId).select(
+      "-password -__v -refreshToken"
+    );
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -292,8 +288,8 @@ exports.getUserById = async (req, res) => {
 };
 
 /**
- * @description Update User
- * @route PATCH api/user/update-user/:id
+ * @description Controller to update a user's profile
+ * @route PATCH api/user/update-user/:userId
  * @access Private (User)
  */
 exports.updateUser = async (req, res) => {
@@ -305,9 +301,9 @@ exports.updateUser = async (req, res) => {
       });
     }
 
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    const user = await User.findById(id);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -324,14 +320,11 @@ exports.updateUser = async (req, res) => {
       }
     }
 
-    // ✅ If new profile picture uploaded
     if (req.files?.profilePicture) {
       let existingPublicId = null;
 
-      // Extract public ID from existing profile picture URL if it exists
       if (user.profilePicture) {
         try {
-          // Extract public ID from Cloudinary URL
           const matches = user.profilePicture.match(/\/v\d+\/(.+?)\./);
           if (matches && matches[1]) {
             existingPublicId = matches[1];
@@ -341,11 +334,10 @@ exports.updateUser = async (req, res) => {
         }
       }
 
-      // Upload new profile picture with the same public ID to overwrite
       const profilePictureUploadResult = await uploadToCloudinary(
         req.files.profilePicture[0],
         "profilePicture",
-        existingPublicId // Pass the public ID to overwrite the existing image
+        existingPublicId
       );
       updates.profilePicture = profilePictureUploadResult.url;
     }
@@ -357,7 +349,7 @@ exports.updateUser = async (req, res) => {
       });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(id, updates, {
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
       runValidators: true,
     });
@@ -377,8 +369,8 @@ exports.updateUser = async (req, res) => {
 };
 
 /**
- * @description  Logout USer
- * @route POST /api/user/logout-user
+ * @description Controller for user logout
+ * @route POST /api/user/logout
  * @access Public
  */
 exports.logoutUser = async (req, res, next) => {
@@ -408,7 +400,7 @@ exports.logoutUser = async (req, res, next) => {
 };
 
 /**
- * @description Forgot Password - Send reset link to email
+ * @description Controller to handle forgot password - sending reset link to email
  * @route POST /api/user/forgot-password
  * @access Public
  */
@@ -463,8 +455,8 @@ exports.forgotPassword = async (req, res) => {
 };
 
 /**
- * @description Reset Password with token
- * @route POST /api/seller/reset-password/:token
+ * @description Controller to reset password with token
+ * @route POST /api/user/reset-password/:token
  * @access Public
  */
 exports.resetPasswordWithToken = async (req, res) => {
@@ -531,8 +523,8 @@ exports.resetPasswordWithToken = async (req, res) => {
 };
 
 /**
- * @description Verify reset token validity
- * @route GET /api/seller/verify-reset-token/:token
+ * @description Controller to verify reset token validity
+ * @route GET /api/user/verify-reset-token/:token
  * @access Public
  */
 exports.verifyResetToken = async (req, res) => {

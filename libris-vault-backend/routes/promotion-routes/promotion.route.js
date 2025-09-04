@@ -3,13 +3,8 @@ const router = express.Router();
 const { authMiddleware } = require("../../middlewares/auth.middleware");
 const promotionController = require("../../controllers/promotion-controllers/promotion.controller");
 
-//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN ROUTES  ----------------------------------
-
 /**
- * @description Routes for Creating System-wide Promotions
+ * @description Route for creating system-wide promotions.
  */
 router.post(
   "/super-admin/create-promotion",
@@ -18,7 +13,7 @@ router.post(
 );
 
 /**
- * @description Route to Get Active System-wide Promotion
+ * @description Route to get an active system-wide promotion.
  */
 router.get(
   "/get-active-system-wide-promotion",
@@ -27,22 +22,16 @@ router.get(
 );
 
 /**
- * @description Route to review seller promotions
+ * @description Route to review a seller's promotion.
  */
-
 router.patch(
-  "/super-admin/:id/review-seller-promotion",
+  "/super-admin/review-seller-promotion/:promotionId",
   authMiddleware,
   promotionController.reviewSellerPromotion
 );
 
-//------------------------------ SELLER ROUTES  ----------------------------------
-//------------------------------ SELLER ROUTES  ----------------------------------
-//------------------------------ SELLER ROUTES  ----------------------------------
-//------------------------------ SELLER ROUTES  ----------------------------------
-
 /**
- * @description Routes for Creating Seller Promotions
+ * @description Route for creating a seller's promotion.
  */
 router.post(
   "/seller/create-seller-promotion",

@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 /**
- * @description Store schema for Seller
+ * @schema StoreSchema
+ * @description Schema representing a seller’s store, including profile details, verification status, associated documents, login security, and linked book requests.
  */
 const StoreSchema = new mongoose.Schema(
   {
@@ -78,10 +79,12 @@ const StoreSchema = new mongoose.Schema(
       default: null,
     },
 
-    bookRequests: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "BookRequest",
-    }],
+    bookRequests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "BookRequest",
+      },
+    ],
   },
   { timestamps: true }
 );

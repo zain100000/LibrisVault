@@ -5,23 +5,18 @@ const {
   uploadToCloudinary,
 } = require("../../utilities/cloudinary/cloudinary.utility");
 
-//------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------
-
 /**
- * @description Create a new store for the authenticated seller
- * @route POST /api/store/sellerId/create-store
+ * @description Controller to create a new store for the authenticated seller
+ * @route POST /api/store/create-store/:sellerId
  * @access Private (Seller)
  */
 exports.createStore = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { sellerId } = req.params;
     const { storeName, storeType, address, country, storeDescription } =
       req.body;
 
-    const seller = await Seller.findById(id);
+    const seller = await Seller.findById(sellerId);
     if (!seller) {
       return res
         .status(404)
@@ -70,7 +65,7 @@ exports.createStore = async (req, res) => {
     }
 
     const store = await Store.create({
-      seller: id,
+      seller: sellerId,
       storeLogo,
       storeName,
       storeType,
@@ -98,8 +93,8 @@ exports.createStore = async (req, res) => {
 };
 
 /**
- * @description Login to store
- * @route POST /api/store/sellerId/login-store
+ * @description Controller to login to store
+ * @route POST /api/store/login-store
  * @access Public
  */
 exports.loginStore = async (req, res) => {
@@ -169,15 +164,15 @@ exports.loginStore = async (req, res) => {
 };
 
 /**
- * @description Get store details
- * @route GET /api/store/sellerId/get-store-by-id/:id
+ * @description Controller to get store details
+ * @route GET /api/store/get-store-by-id/:storeId
  * @access Private (Seller)
  */
 exports.getStoreById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { storeId } = req.params;
 
-    const store = await Store.findById(id).populate("seller");
+    const store = await Store.findById(storeId).populate("seller");
     if (!store) {
       return res
         .status(404)

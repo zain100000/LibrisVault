@@ -8,26 +8,25 @@ const storeLogoUpload = require("../../utilities/cloudinary/cloudinary.utility")
 const storeController = require("../../controllers/store-controllers/store.controller");
 
 /**
- * @description Route to create a new store
+ * @description Route to create a new store.
  */
 router.post(
-  "/:id/create-store",
+  "/create-store",
   authMiddleware,
   storeLogoUpload.upload,
   storeController.createStore
 );
 
 /**
- *  @description Route to login to store
+ * @description Route to log in to a store.
  */
-
-router.post("/:id/login-store", authLimiter, storeController.loginStore);
+router.post("/login-store", authLimiter, storeController.loginStore);
 
 /**
- * @description Route to get store details by ID
+ * @description Route to get store details by ID.
  */
 router.get(
-  "/:id/get-store-by-id/:id",
+  "/get-store-by-id/:storeId",
   authMiddleware,
   storeController.getStoreById
 );

@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 
 /**
- * @description Rating Schema for book
+ * @schema RatingSchema
+ * @description Schema representing a user rating for a book.
  */
 const ratingSchema = new mongoose.Schema({
   userId: {
@@ -24,7 +25,8 @@ const ratingSchema = new mongoose.Schema({
 });
 
 /**
- * @description Review Schema for book
+ * @schema ReviewSchema
+ * @description Schema representing a user review for a book.
  */
 const reviewSchema = new mongoose.Schema({
   userId: {
@@ -46,7 +48,8 @@ const reviewSchema = new mongoose.Schema({
 });
 
 /**
- * @description Book Schema
+ * @schema BookSchema
+ * @description Schema representing book details, including metadata, seller information, ratings, and reviews.
  */
 const BookSchema = new mongoose.Schema(
   {
@@ -148,7 +151,8 @@ const BookSchema = new mongoose.Schema(
 );
 
 /**
- * @description Helper function for updating avaerage rating
+ * @method updateAverageRating
+ * @description Calculates and updates the book’s average rating and total rating count.
  */
 BookSchema.methods.updateAverageRating = function () {
   if (this.ratings.length === 0) {

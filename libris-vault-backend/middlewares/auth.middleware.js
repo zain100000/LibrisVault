@@ -6,8 +6,9 @@ const { rateLimit } = require("express-rate-limit");
 const crypto = require("crypto");
 
 /**
- * @description Environment variables for Libris Vault Backend
- * Ensure JWT_SECRET is set in your environment variables for security.
+ * @constant ENV_VARIABLES
+ * @description Environment variables configuration for the Libris Vault backend.
+ * @note Ensure that JWT_SECRET is set in your environment for security.
  */
 if (!process.env.JWT_SECRET) {
   const generatedSecret = crypto.randomBytes(64).toString("hex");
@@ -15,8 +16,9 @@ if (!process.env.JWT_SECRET) {
 }
 
 /**
- * @desc auth limiter to prevent brute force attacks
- * @description Limits the number of authentication attempts to 3 per 15 minutes
+ * @constant authLimiter
+ * @description Middleware that prevents brute-force attacks by limiting authentication attempts.
+ * Restricts users to 3 failed login attempts per 15 minutes.
  */
 exports.authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -30,7 +32,8 @@ exports.authLimiter = rateLimit({
 });
 
 /**
- * @description Enhanced middleware to authenticate and authorize users with security improvements
+ * @function authenticateAndAuthorize
+ * @description Enhanced middleware that authenticates and authorizes users with additional security measures.
  */
 exports.authMiddleware = async (req, res, next) => {
   try {

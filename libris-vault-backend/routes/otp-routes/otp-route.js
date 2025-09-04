@@ -3,12 +3,12 @@ const router = express.Router();
 const otpController = require("../../controllers/otp-controllers/otp-controller");
 
 /**
- * @description Routes for OTP
+ * @description Route to send an OTP to a user.
  */
 router.post("/send-otp", otpController.sendSellerOTP);
 
 /**
- * @description Route to Verify OTP
+ * @description Route to verify a user's OTP.
  */
 router.post("/verify-otp", otpController.verifySellerOTP);
 

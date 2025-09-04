@@ -3,13 +3,8 @@ const router = express.Router();
 const { authMiddleware } = require("../../middlewares/auth.middleware");
 const bookRequestController = require("../../controllers/book-request-controllers/book.request.controller");
 
-//------------------------------ BOOK REQUEST ROUTES  ----------------------------
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-
 /**
- * @description Create Book Request
+ * @description Creates a new book request. 
  */
 router.post(
   "/create-request",
@@ -18,19 +13,19 @@ router.post(
 );
 
 /**
- * @description Get User Book Requests
+ * @description Retrieves all book requests for a specific user.
  */
 router.get(
-  "/get-book-request/:id",
+  "/get-book-request/:userId",
   authMiddleware,
   bookRequestController.getRequests
 );
 
 /**
- * @description Update User Request Status
+ * @description Updates the status of a specific book request.
  */
 router.patch(
-  "/update-request-status/:id",
+  "/update-request-status/:requestId",
   authMiddleware,
   bookRequestController.updateRequestStatus
 );

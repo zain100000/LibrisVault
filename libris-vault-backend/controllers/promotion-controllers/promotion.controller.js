@@ -5,15 +5,10 @@ const {
   sendPromotionEmail,
 } = require("../../helpers/email-helper/email.helper");
 
-//------------------------------ SUPER ADMIN FUNCTIONS  ----------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
 /**
- * @desc Super Admin creates a system-wide promotion
+ * @description Controller for a Super Admin to create a system-wide promotion.
  * @route POST /api/promotion/super-admin/create-promotion
- * @access Super Admin
+ * @access Private (SuperAdmin)
  */
 exports.createPromotion = async (req, res) => {
   try {
@@ -112,16 +107,16 @@ exports.getActiveSystemWidePromotion = async (req, res) => {
 };
 
 /**
- * @description Review and approve or reject a seller-specific promotion
- * @route PATCH /api/super-admin/review-seller-promotion/:id
+ * @description Controller for a Super Admin to review and approve or reject a seller-specific promotion.
+ * @route PATCH /api/promotion/super-admin/review-seller-promotion/:promotionId
  * @access Private (SuperAdmin)
  */
 exports.reviewSellerPromotion = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { promotionId } = req.params;
     const { action } = req.body;
 
-    const promotion = await Promotion.findById(id);
+    const promotion = await Promotion.findById(promotionId);
     if (!promotion) {
       return res
         .status(404)
@@ -176,11 +171,11 @@ exports.reviewSellerPromotion = async (req, res) => {
   }
 };
 
-//------------------------------ SELLER FUNCTIONS ----------------------------------
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------
-
+/**
+ * @description Controller for a seller to create a new seller-specific promotion.
+ * @route POST /api/promotion/seller/create-promotion
+ * @access Private (Seller)
+ */
 exports.createSellerPromotion = async (req, res) => {
   try {
     const {

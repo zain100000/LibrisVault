@@ -12,7 +12,10 @@ const {
 } = require("../../helpers/email-helper/email.helper");
 
 /**
- * Helper: Handle Buy Now Order
+ * @description Helper function to handle a "Buy Now" order.
+ * @param {string} bookId - The ID of the book to be purchased.
+ * @param {number} quantity - The quantity of the book.
+ * @returns {Promise<Object>} Object with the items and total amount.
  */
 const handleBuyNowOrder = async (bookId, quantity) => {
   const book = await Book.findById(bookId);
@@ -36,7 +39,9 @@ const handleBuyNowOrder = async (bookId, quantity) => {
 };
 
 /**
- * Helper: Handle Cart Order
+ * @description Helper function to handle a cart-based order.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<Object>} Object with the items and total amount.
  */
 const handleCartOrder = async (userId) => {
   const user = await User.findById(userId).populate("cart.productId");
@@ -63,7 +68,6 @@ const handleCartOrder = async (userId) => {
     0
   );
 
-  // Clear cart after placing order
   user.cart = [];
   await user.save();
 
@@ -71,9 +75,9 @@ const handleCartOrder = async (userId) => {
 };
 
 /**
- * @description Controller: Place Order (COD only)
+ * @description Controller to place a new order (COD only).
  * @route POST /api/order/place-order
- * @access Private (User must be logged in)
+ * @access Private (User)
  */
 exports.placeOrder = async (req, res) => {
   try {
@@ -84,7 +88,6 @@ exports.placeOrder = async (req, res) => {
     let items = [];
     let totalAmount = 0;
 
-    // Determine order type
     if (type === "BUY_NOW") {
       ({ items, totalAmount } = await handleBuyNowOrder(bookId, quantity));
     } else if (type === "CART") {
@@ -95,11 +98,9 @@ exports.placeOrder = async (req, res) => {
         .json({ success: false, message: "Invalid order type" });
     }
 
-    // COD only → always start with ORDER_RECEIVED
     const paymentStatus = "PENDING";
     const orderStatus = "ORDER_RECEIVED";
 
-    // Create Order
     const order = await Order.create({
       user: userId,
       store: storeId,
@@ -111,24 +112,22 @@ exports.placeOrder = async (req, res) => {
       shippingAddress,
     });
 
-    // Push order to user
     await User.findByIdAndUpdate(userId, {
       $push: {
         orders: {
-          orderId: order._id, // ✅ store real order id
+          orderId: order._id,
           status: order.status,
           placedAt: new Date(),
         },
       },
     });
 
-    // Push order to seller
     const store = await Store.findById(storeId).populate("seller");
     if (store && store.seller) {
       await Seller.findByIdAndUpdate(store.seller._id, {
         $push: {
           orders: {
-            orderId: order._id, // ✅ store real order id
+            orderId: order._id,
             status: order.status,
             placedAt: new Date(),
           },
@@ -136,7 +135,6 @@ exports.placeOrder = async (req, res) => {
       });
     }
 
-    // Populate books for email
     const populatedOrder = await Order.findById(order._id)
       .populate({ path: "items.book", select: "title price" })
       .populate("user", "userName email");
@@ -151,7 +149,6 @@ exports.placeOrder = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    // Send Email Notifications
     await sendOrderConfirmationToUser(user.email, orderForEmail);
 
     if (store && store.seller) {
@@ -172,15 +169,14 @@ exports.placeOrder = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Controller: Get All Orders for User
+ * @description Controller to get all orders for a user.
  * @route GET /api/order/get-all-orders
- * @access Private
+ * @access Private (User)
  */
 exports.getAllOrders = async (req, res) => {
   try {
@@ -189,7 +185,7 @@ exports.getAllOrders = async (req, res) => {
       .populate({ path: "items.book", select: "title price discountPrice" })
       .populate({ path: "store", select: "storeName storeLogo" })
       .populate({ path: "user", select: "userName email" })
-      .sort({ createdAt: -1 }); // latest first
+      .sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
       message: "Orders fetched successfully",
@@ -200,23 +196,21 @@ exports.getAllOrders = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Controller: Cancel Order
- * @route PATCH /api/order/:id/cancel
- * @access Private (User must be logged in)
+ * @description Controller to cancel an order.
+ * @route PATCH /api/order/cancel/:orderId
+ * @access Private (User)
  */
 exports.cancelOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { id } = req.params;
+    const { orderId } = req.params;
 
-    // Find order
-    const order = await Order.findOne({ _id: id, user: userId }).populate([
+    const order = await Order.findOne({ _id: orderId, user: userId }).populate([
       { path: "items.book", select: "title price" },
       { path: "user", select: "userName email" },
       { path: "store", populate: { path: "seller", select: "email" } },
@@ -228,7 +222,6 @@ exports.cancelOrder = async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
-    // Check if order can be cancelled
     if (["CANCELLED", "REFUNDED", "COMPLETED"].includes(order.status)) {
       return res.status(400).json({
         success: false,
@@ -243,23 +236,19 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
-    // Update order status
     order.status = "CANCELLED";
     await order.save();
 
-    // ✅ Update in User.orders
     await User.updateOne(
       { _id: userId, "orders.orderId": order._id },
       { $set: { "orders.$.status": "CANCELLED" } }
     );
 
-    // ✅ Update in Seller.orders
     await Seller.updateOne(
       { _id: order.store.seller._id, "orders.orderId": order._id },
       { $set: { "orders.$.status": "CANCELLED" } }
     );
 
-    // Prepare order object for email
     const orderForEmail = {
       ...order._doc,
       items: order.items.map((item) => ({
@@ -268,7 +257,6 @@ exports.cancelOrder = async (req, res) => {
       })),
     };
 
-    // Send emails
     await sendOrderCancelledToUser(order.user.email, orderForEmail);
     if (order.store && order.store.seller) {
       await sendOrderCancelledToSeller(
@@ -288,23 +276,21 @@ exports.cancelOrder = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Seller updates order status
+ * @description Controller for a seller to update an order status.
  * @route PATCH /api/order/seller/update-order-status/:orderId
- * @access Private (Seller only)
+ * @access Private (Seller)
  */
 exports.updateOrderStatus = async (req, res) => {
   try {
-    const sellerId = req.user.id; // Logged-in seller
+    const sellerId = req.user.id;
     const { orderId } = req.params;
     const { status } = req.body;
 
-    // ✅ Allowed statuses
     const allowedStatuses = [
       "TO_PAY",
       "TO_SHIP",
@@ -320,7 +306,6 @@ exports.updateOrderStatus = async (req, res) => {
         .json({ success: false, message: "Invalid status" });
     }
 
-    // ✅ Get seller's store
     const store = await Store.findOne({ seller: sellerId });
     if (!store) {
       return res
@@ -328,7 +313,6 @@ exports.updateOrderStatus = async (req, res) => {
         .json({ success: false, message: "No store found for this seller" });
     }
 
-    // ✅ Ensure order belongs to seller’s store
     const order = await Order.findOne({
       _id: orderId,
       store: store._id,
@@ -339,23 +323,19 @@ exports.updateOrderStatus = async (req, res) => {
         .json({ success: false, message: "Order not found or unauthorized" });
     }
 
-    // ✅ Update main order
     order.status = status;
     await order.save();
 
-    // ✅ Update in User.orders
     await User.updateOne(
       { _id: order.user._id, "orders.orderId": order._id },
       { $set: { "orders.$.status": status } }
     );
 
-    // ✅ Update in Seller.orders
     await Seller.updateOne(
       { _id: sellerId, "orders.orderId": order._id },
       { $set: { "orders.$.status": status } }
     );
 
-    // ✅ Notify user via email
     await sendOrderStatusUpdateToUser(order.user.email, {
       orderId: order._id,
       status,
@@ -372,7 +352,6 @@ exports.updateOrderStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error",
-      error: err.message,
     });
   }
 };

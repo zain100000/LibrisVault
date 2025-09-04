@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+/**
+ * @schema OrderSchema
+ * @description Schema representing customer orders, including purchased items, payment details, shipping information, and order status.
+ */
 const OrderSchema = new mongoose.Schema(
   {
     user: {
@@ -53,13 +57,13 @@ const OrderSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "ORDER_RECEIVED", // Order placed, waiting for confirmation
-        "TO_PAY", // Waiting for payment
-        "TO_SHIP", // Payment done, waiting for seller to ship
-        "TO_RECEIVE", // Shipped, waiting for customer to receive
-        "COMPLETED", // Delivered successfully
-        "CANCELLED", // Cancelled before dispatch
-        "REFUNDED", // Refunded after payment
+        "ORDER_RECEIVED",
+        "TO_PAY",
+        "TO_SHIP",
+        "TO_RECEIVE",
+        "COMPLETED",
+        "CANCELLED",
+        "REFUNDED",
       ],
       default: "ORDER_RECEIVED",
     },

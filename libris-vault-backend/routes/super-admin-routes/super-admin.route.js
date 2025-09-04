@@ -7,13 +7,8 @@ const {
 const profilePictureUpload = require("../../utilities/cloudinary/cloudinary.utility");
 const superAdminController = require("../../controllers/super-admin-controllers/super-admin.controller");
 
-//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN BASE ROUTES  ----------------------------------
-
 /**
- * @description Routes for Super Admin functionalities
+ * @description Route for Super Admin registration.
  */
 router.post(
   "/signup-super-admin",
@@ -22,7 +17,7 @@ router.post(
 );
 
 /**
- * @description Route for Super Admin login
+ * @description Route for Super Admin sign-in.
  */
 router.post(
   "/signin-super-admin",
@@ -31,16 +26,16 @@ router.post(
 );
 
 /**
- * @description Route to Get Super Admin details by ID
+ * @description Route to get a Super Admin's details by ID.
  */
 router.get(
-  "/get-super-admin-by-id/:id",
+  "/get-super-admin-by-id/:superAdminId",
   authMiddleware,
   superAdminController.getSuperAdminById
 );
 
 /**
- * @description Route to Reset Super Admin Password
+ * @description Route to reset a Super Admin's password.
  */
 router.patch(
   "/reset-super-admin-password",
@@ -49,7 +44,7 @@ router.patch(
 );
 
 /**
- * @description Route to Logout Super Admin
+ * @description Route for Super Admin logout.
  */
 router.post(
   "/logout-super-admin",
@@ -57,35 +52,27 @@ router.post(
   superAdminController.logoutSuperAdmin
 );
 
-//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
-//------------------------------ SUPER ADMIN ACTION ROUTES  ----------------------------------
-
 /**
- * @description Routes for Approving or Rejecting Seller Accounts
+ * @description Route to approve or reject a seller's account deletion request.
  */
-
 router.delete(
-  "/approve-seller-account-deletion/:id",
+  "/approve-seller-account-deletion/:sellerId",
   authMiddleware,
   superAdminController.approveSellerAccountDeletion
 );
 
 /**
- * @description Route for Updating Seller Account Status (Suspend/Ban)
+ * @description Route to update a seller's status (e.g., suspend or ban).
  */
-
 router.patch(
-  "/update-seller-status/:id",
+  "/update-seller-status/:sellerId",
   authMiddleware,
   superAdminController.updateSellerStatus
 );
 
 /**
- * @description Get all sellers with optional filters
+ * @description Route to get all sellers with optional filters.
  */
-
 router.get(
   "/get-all-sellers",
   authMiddleware,
@@ -93,10 +80,10 @@ router.get(
 );
 
 /**
- * @description Update the status of a seller's store (approve, suspend, etc.)
+ * @description Route to update the status of a seller's store (e.g., approve or suspend).
  */
 router.patch(
-  "/update-seller-store-status/:id",
+  "/update-seller-store-status/:storeId",
   authMiddleware,
   superAdminController.updateStoreStatus
 );

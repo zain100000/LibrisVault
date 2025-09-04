@@ -8,7 +8,7 @@ const profilePictureUpload = require("../../utilities/cloudinary/cloudinary.util
 const sellerController = require("../../controllers/seller-controllers/seller-controller");
 
 /**
- * @description Routes for Seller Signup
+ * @description Route for seller registration.
  */
 router.post(
   "/signup-seller",
@@ -17,32 +17,31 @@ router.post(
 );
 
 /**
- * @description Route for Seller Signin
+ * @description Route for seller sign-in.
  */
 router.post("/signin-seller", authLimiter, sellerController.loginSeller);
 
 /**
- * @description Route to Get Seller details by ID
+ * @description Route to get a seller's details by their ID.
  */
 router.get(
-  "/get-seller-by-id/:id",
+  "/get-seller-by-id/:sellerId",
   authMiddleware,
   sellerController.getSellerById
 );
 
 /**
- * @description Route to Update Seller details
+ * @description Route to update a seller's details.
  */
-
 router.patch(
-  "/update-seller/:id",
+  "/update-seller/:sellerId",
   authMiddleware,
   profilePictureUpload.upload,
   sellerController.updateSeller
 );
 
 /**
- * @description Route to Reset Seller Password
+ * @description Route to reset a seller's password.
  */
 router.patch(
   "/reset-seller-password",
@@ -51,36 +50,32 @@ router.patch(
 );
 
 /**
- * @description Route to Logout Seller
+ * @description Route for seller logout.
  */
 router.post("/logout-seller", authMiddleware, sellerController.logoutSeller);
 
 /**
- * @description Route to Delete Seller Account
+ * @description Route to request account deletion.
  */
-
 router.delete(
-  "/request-deletion-account/:id",
+  "/request-deletion-account/:sellerId",
   authMiddleware,
   sellerController.requestSellerDeletion
 );
 
 /**
- * @description Route to send email for password reset
+ * @description Route to send an email for a password reset.
  */
-
 router.post("/forgot-password", sellerController.forgotPassword);
 
 /**
- * @description Route to reset password with token
+ * @description Route to reset a password using a token.
  */
-
 router.post("/reset-password/:token", sellerController.resetPasswordWithToken);
 
 /**
- * @description Route to verify reset token
+ * @description Route to verify a password reset token.
  */
-
 router.post("/verify-reset-token/:token", sellerController.verifyResetToken);
 
 module.exports = router;

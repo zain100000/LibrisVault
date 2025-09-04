@@ -2,7 +2,7 @@ const Inventory = require("../../models/book-models/book.model");
 const User = require("../../models/user-models/user.model");
 
 /**
- * @description Rate a book (1-5 stars)
+ * @description Controller for a user to rate a book (1-5 stars).
  * @route POST /api/rating/add-rate
  * @access Public
  */
@@ -81,22 +81,21 @@ exports.rateBook = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Get book ratings and reviews
- * @route GET /api/rating/get-book-rating/:id
+ * @description Controller to get book ratings and reviews.
+ * @route GET /api/rating/get-book-rating/:bookId
  * @access Public
  */
 exports.getBookRatings = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { bookId } = req.params;
     const { page = 1, limit = 10, sortBy = "newest" } = req.query;
 
-    const book = await Inventory.findById(id)
+    const book = await Inventory.findById(bookId)
       .populate({
         path: "ratings.userId",
         select: "userName profilePicture",
@@ -155,22 +154,21 @@ exports.getBookRatings = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Get user's rating for a book
- * @route GET /api/rating/user-rating/:id
+ * @description Controller to get a user's rating for a specific book.
+ * @route GET /api/rating/user-rating/:bookId
  * @access Public
  */
 exports.getUserRating = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { bookId } = req.params;
     const userId = req.user.id;
 
-    const book = await Inventory.findById(id);
+    const book = await Inventory.findById(bookId);
     if (!book) {
       return res.status(404).json({
         success: false,
@@ -190,22 +188,21 @@ exports.getUserRating = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Delete user's rating
- * @route DELETE /api/rating/delete-rating/:id
+ * @description Controller to delete a user's rating for a specific book.
+ * @route DELETE /api/rating/delete-rating/:bookId
  * @access Public
  */
 exports.deleteRating = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { bookId } = req.params;
     const userId = req.user.id;
 
-    const book = await Inventory.findById(id);
+    const book = await Inventory.findById(bookId);
     if (!book) {
       return res.status(404).json({
         success: false,
@@ -238,13 +235,12 @@ exports.deleteRating = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Get top rated books
+ * @description Controller to get a list of top-rated books.
  * @route GET /api/rating/top-rated
  * @access Public
  */
@@ -270,7 +266,6 @@ exports.getTopRatedBooks = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };

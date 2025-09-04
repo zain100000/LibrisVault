@@ -6,18 +6,16 @@ const {
   sendBookRequestStatusToUser,
 } = require("../../helpers/email-helper/email.helper");
 
-
 /**
- * @description Controller to create request
+ * @description Controller to create a new book request
  * @route POST /api/request/create-request
- * @access Public(User)
+ * @access Private (User)
  */
 exports.requestBook = async (req, res) => {
   try {
     const { storeId, requestedTitle, requestedAuthor, message } = req.body;
     const userId = req.user.id;
 
-    // ✅ Fetch store with seller details
     const store = await Store.findById(storeId).populate("seller", "email");
     if (!store) {
       return res
@@ -25,7 +23,6 @@ exports.requestBook = async (req, res) => {
         .json({ success: false, message: "Store not found" });
     }
 
-    // ✅ Fetch user info (to get userName & email for notification)
     const user = await User.findById(userId).select("userName email");
     if (!user) {
       return res
@@ -33,7 +30,6 @@ exports.requestBook = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // ✅ Create book request
     const request = await BookRequest.create({
       user: userId,
       store: storeId,
@@ -45,12 +41,11 @@ exports.requestBook = async (req, res) => {
     store.bookRequests.push(request._id);
     await store.save();
 
-    // 🔔 Notify seller
     if (store.seller?.email) {
       setImmediate(async () => {
         try {
           await sendBookRequestNotificationToSeller(store.seller.email, {
-            userName: user.userName, // ✅ now defined
+            userName: user.userName,
             storeName: store.storeName,
             requestedTitle,
             requestedAuthor,
@@ -72,21 +67,20 @@ exports.requestBook = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Controller to get requests
- * @route GET /api/request/get-book-requests/:id
- * @access Private(Seller)
+ * @description Controller to get all book requests for a specific store
+ * @route GET /api/request/get-book-requests/:storeId
+ * @access Private (Seller)
  */
 exports.getRequests = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { storeId } = req.params;
 
-    const store = await Store.findById(id);
+    const store = await Store.findById(storeId);
     if (!store) {
       return res.status(404).json({
         success: false,
@@ -94,7 +88,7 @@ exports.getRequests = async (req, res) => {
       });
     }
 
-    const requests = await BookRequest.find({ store: id })
+    const requests = await BookRequest.find({ store: storeId })
       .populate("user", "userName email")
       .populate("store", "storeName");
 
@@ -107,19 +101,18 @@ exports.getRequests = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Controller to update request status
- * @route PATCH /api/request/update-book-status/:id
- * @access Private(Seller)
+ * @description Controller to update the status of a book request
+ * @route PATCH /api/request/update-book-status/:requestId
+ * @access Private (Seller)
  */
 exports.updateRequestStatus = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { requestId } = req.params;
     const { status } = req.body;
 
     if (!["PENDING", "APPROVED", "REJECTED"].includes(status)) {
@@ -130,7 +123,7 @@ exports.updateRequestStatus = async (req, res) => {
     }
 
     const request = await BookRequest.findByIdAndUpdate(
-      id,
+      requestId,
       { status },
       { new: true }
     )
@@ -144,7 +137,6 @@ exports.updateRequestStatus = async (req, res) => {
       });
     }
 
-    // 🔔 Send email notification to user
     if (request.user?.email) {
       await sendBookRequestStatusToUser(request.user.email, {
         requestedTitle: request.requestedTitle,
@@ -162,7 +154,6 @@ exports.updateRequestStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };

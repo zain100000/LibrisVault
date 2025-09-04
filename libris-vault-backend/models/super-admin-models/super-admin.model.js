@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 /**
- * @description Schema for Super Admin
+ * @schema SuperAdminSchema
+ * @description Schema representing super admin accounts, including authentication details, account status, security controls, and session management.
  */
-
 const superAdminSchema = new mongoose.Schema(
   {
     profilePicture: {
@@ -67,12 +67,12 @@ const superAdminSchema = new mongoose.Schema(
     },
 
     sessionId: {
-      type: String, //
+      type: String,
       default: null,
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 

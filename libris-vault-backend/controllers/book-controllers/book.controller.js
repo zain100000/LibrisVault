@@ -8,10 +8,7 @@ const {
   getActiveSellerPromotion,
 } = require("../../utilities/promotion/promotion.utility");
 
-// ------------------------------ SELLER ACTION FUNCTIONS  ----------------------------------
-// ------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------
+// Seller-Specific Actions
 
 /**
  * @description Controller to add a new book
@@ -194,14 +191,14 @@ exports.getAllBooks = async (req, res) => {
 
 /**
  * @description Controller to get a book by ID
- * @route GET api/inventory/book/get-book-by-id/:id
+ * @route GET api/inventory/book/get-book-by-id/:bookId
  * @access Public
  */
 exports.getBookById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { bookId } = req.params;
 
-    const books = await Book.findById(id).select("-title");
+    const books = await Book.findById(bookId).select("-title");
     if (!books) {
       return res.status(404).json({
         success: false,
@@ -225,7 +222,7 @@ exports.getBookById = async (req, res) => {
 
 /**
  * @description Controller to update a book by ID
- * @route PATCH api/inventory/book/update-book/:id
+ * @route PATCH api/inventory/book/update-book/:bookId
  * @access Private (Seller)
  */
 exports.updateBook = async (req, res) => {
@@ -237,9 +234,9 @@ exports.updateBook = async (req, res) => {
       });
     }
 
-    const { id } = req.params;
+    const { bookId } = req.params;
 
-    const book = await Book.findById(id);
+    const book = await Book.findById(bookId);
     if (!book) {
       return res.status(404).json({
         success: false,
@@ -289,7 +286,7 @@ exports.updateBook = async (req, res) => {
       });
     }
 
-    const updatedBook = await Book.findByIdAndUpdate(id, updates, {
+    const updatedBook = await Book.findByIdAndUpdate(bookId, updates, {
       new: true,
       runValidators: true,
     });
@@ -327,7 +324,7 @@ exports.updateBook = async (req, res) => {
 
 /**
  * @description Controller to delete a book by ID
- * @route DELETE api/inventory/book/delete-book/:id
+ * @route DELETE api/inventory/book/delete-book/:bookId
  * @access Private (Super Admin, Seller)
  */
 exports.deleteBook = async (req, res) => {
@@ -340,9 +337,9 @@ exports.deleteBook = async (req, res) => {
       });
     }
 
-    const { id } = req.params;
+    const { bookId } = req.params;
 
-    const book = await Book.findById(id);
+    const book = await Book.findById(bookId);
     if (!book) {
       return res
         .status(404)
@@ -356,7 +353,7 @@ exports.deleteBook = async (req, res) => {
       );
     }
 
-    await Book.findByIdAndDelete(id);
+    await Book.findByIdAndDelete(bookId);
 
     res.status(201).json({
       success: true,

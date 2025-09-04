@@ -5,9 +5,11 @@ const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
 
 /**
- * @description Security middleware to enhance the security of the application
- * @param {Object} app - The Express application instance
+ * @function applySecurityMiddleware
+ * @description Applies security-related middleware to enhance the protection of the application.
+ * @param {Object} app - The Express application instance.
  */
+
 exports.securityMiddleware = (app) => {
   app.use(
     helmet({

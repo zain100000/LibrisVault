@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
 /**
- * @description Schema for Seller
+ * @schema SellerSchema
+ * @description Schema representing seller accounts, including authentication details, store associations, inventory, orders, promotions, and account status.
  */
-
 const SellerSchema = new mongoose.Schema(
   {
     profilePicture: {
@@ -80,21 +80,19 @@ const SellerSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "Order",
         },
-
         status: {
           type: String,
           enum: [
-            "ORDER_RECEIVED", // Order placed, waiting for confirmation
-            "TO_PAY", // Waiting for payment
-            "TO_SHIP", // Payment done, waiting for seller to ship
-            "TO_RECEIVE", // Shipped, waiting for customer to receive
-            "COMPLETED", // Delivered successfully
-            "CANCELLED", // Cancelled before dispatch
-            "REFUNDED", // Refunded after payment
+            "ORDER_RECEIVED",
+            "TO_PAY",
+            "TO_SHIP",
+            "TO_RECEIVE",
+            "COMPLETED",
+            "CANCELLED",
+            "REFUNDED",
           ],
           default: "ORDER_RECEIVED",
         },
-
         placedAt: {
           type: Date,
           default: Date.now,

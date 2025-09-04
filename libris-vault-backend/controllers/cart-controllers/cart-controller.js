@@ -6,7 +6,7 @@ const {
 } = require("../../utilities/promotion/promotion.utility");
 
 /**
- * @description Calculate discounted price for a product
+ * @description Calculates discounted price for a product.
  * @param {Object} product - Product object
  * @param {Object} systemWidePromo - Active system-wide promotion
  * @param {Array} sellerPromotions - Active seller promotions
@@ -46,9 +46,9 @@ const calculateDiscountedPrice = (
 };
 
 /**
- * @description Controller to add product to cart (increases quantity by 1 each call)
- * @route /api/cart/add-to-cart
- * @access Public
+ * @description Controller to add a product to the cart (increases quantity by 1 with each call).
+ * @route POST /api/cart/add-to-cart
+ * @access Private (User)
  */
 exports.addToCart = async (req, res) => {
   try {
@@ -153,15 +153,14 @@ exports.addToCart = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Controller to remove product from cart (decreases quantity by 1)
- * @route /api/cart/remove-from-cart
- * @access Public
+ * @description Controller to remove a product from the cart (decreases quantity by 1).
+ * @route DELETE /api/cart/remove-from-cart
+ * @access Private (User)
  */
 exports.removeFromCart = async (req, res) => {
   try {
@@ -247,13 +246,12 @@ exports.removeFromCart = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Calculate cart totals with promotions
+ * @description Calculates cart totals with promotions.
  * @param {Array} cart - Cart items array
  * @returns {Object} Total price, items, discount, and original total
  */
@@ -291,9 +289,9 @@ const calculateCartTotals = async (cart) => {
 };
 
 /**
- * @description Controller to get all cart items
- * @route /api/cart/get-cart
- * @access Public
+ * @description Controller to get all cart items.
+ * @route GET /api/cart/get-cart
+ * @access Private (User)
  */
 exports.getCart = async (req, res) => {
   try {
@@ -329,15 +327,14 @@ exports.getCart = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };
 
 /**
- * @description Controller to clear entire cart
- * @route /api/cart/clear-cart
- * @access Public
+ * @description Controller to clear the entire cart.
+ * @route DELETE /api/cart/clear-cart
+ * @access Private (User)
  */
 exports.clearCart = async (req, res) => {
   try {
@@ -369,7 +366,6 @@ exports.clearCart = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error",
-      error: err.message,
     });
   }
 };

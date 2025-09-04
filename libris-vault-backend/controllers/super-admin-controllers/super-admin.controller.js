@@ -7,7 +7,10 @@ const Store = require("../../models/store-models/store.model");
 const Book = require("../../models/book-models/book.model");
 const Promotion = require("../../models/promotion-models/promotion.model");
 const Order = require("../../models/order.models/order.model");
-const profilePictureUpload = require("../../utilities/cloudinary/cloudinary.utility");
+const {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../../utilities/cloudinary/cloudinary.utility");
 const {
   passwordRegex,
   hashPassword,
@@ -16,14 +19,9 @@ const {
   generateSecureToken,
 } = require("../../helpers/token-helper/token.helper");
 
-//------------------------------ SUPER ADMIN BASE FUNCTIONS  ----------------------------------
-//---------------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------
-
 /**
- * @description SuperAdmin registration
- * @route POST /api/super-admin/signup-superadmin
+ * @description Controller for SuperAdmin registration
+ * @route POST /api/super-admin/signup
  * @access Public
  */
 exports.registerSuperAdmin = async (req, res) => {
@@ -54,7 +52,7 @@ exports.registerSuperAdmin = async (req, res) => {
 
     let userProfileImageUrl = null;
     if (req.files?.profilePicture) {
-      const uploadResult = await profilePictureUpload.uploadToCloudinary(
+      const uploadResult = await uploadToCloudinary(
         req.files.profilePicture[0],
         "profilePicture"
       );
@@ -87,7 +85,7 @@ exports.registerSuperAdmin = async (req, res) => {
   } catch (error) {
     if (uploadedFileUrl) {
       try {
-        await profilePictureUpload.deleteFromCloudinary(uploadedFileUrl);
+        await deleteFromCloudinary(uploadedFileUrl);
       } catch (cloudErr) {
         console.error("Failed to rollback Cloudinary upload:", cloudErr);
       }
@@ -109,8 +107,8 @@ exports.registerSuperAdmin = async (req, res) => {
 };
 
 /**
- * @description SuperAdmin login
- * @route POST /api/super-admin/signin-superadmin
+ * @description Controller for SuperAdmin login
+ * @route POST /api/super-admin/signin
  * @access Public
  */
 exports.loginSuperAdmin = async (req, res) => {
@@ -239,15 +237,15 @@ exports.loginSuperAdmin = async (req, res) => {
 };
 
 /**
- * @description Get SuperAdmin by ID
- * @route GET /api/super-admin/get-superadmin-by-id/:id
+ * @description Controller to get SuperAdmin by ID
+ * @route GET /api/super-admin/get-superadmin/:superAdminId
  * @access Private (SuperAdmin)
  */
 exports.getSuperAdminById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { superAdminId } = req.params;
 
-    const superAdmin = await SuperAdmin.findById(id).select(
+    const superAdmin = await SuperAdmin.findById(superAdminId).select(
       "-password -__v -refreshToken"
     );
     if (!superAdmin) {
@@ -272,7 +270,7 @@ exports.getSuperAdminById = async (req, res) => {
 };
 
 /**
- * @description Reset SuperAdmin password
+ * @description Controller to reset SuperAdmin password
  * @route PATCH /api/super-admin/reset-superadmin-password
  * @access Private (SuperAdmin)
  */
@@ -340,8 +338,8 @@ exports.resetSuperAdminPassword = async (req, res) => {
 };
 
 /**
- * @description SuperAdmin logout
- * @route POST /api/super-admin/logout-superadmin
+ * @description Controller for SuperAdmin logout
+ * @route POST /api/super-admin/logout
  * @access Private (SuperAdmin)
  */
 exports.logoutSuperAdmin = async (req, res, next) => {
@@ -370,23 +368,18 @@ exports.logoutSuperAdmin = async (req, res, next) => {
   }
 };
 
-//------------------------------ SUPER ADMIN ACTIONS FUNCTIONS  ----------------------------------
-//------------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------------
-//------------------------------------------------------------------------------------------------
-
 /**
- * @description Approve and process seller account deletion
- * @route DELETE /api/super-admin/approve-seller-account-deletion/:id
+ * @description Controller to approve and process seller account deletion
+ * @route DELETE /api/super-admin/approve-seller-account-deletion/:sellerId
  * @access Private (SuperAdmin)
  */
 exports.approveSellerAccountDeletion = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { id } = req.params;
+    const { sellerId } = req.params;
 
-    const seller = await Seller.findById(id)
+    const seller = await Seller.findById(sellerId)
       .populate("store")
       .populate("inventory")
       .populate("promotion")
@@ -454,13 +447,13 @@ exports.approveSellerAccountDeletion = async (req, res) => {
 };
 
 /**
- * @description Suspend or ban a seller account
- * @route PUT /api/super-admin/update-seller-status/:id
+ * @description Controller to suspend or ban a seller account
+ * @route PUT /api/super-admin/update-seller-status/:sellerId
  * @access Private (SuperAdmin)
  */
 exports.updateSellerStatus = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { sellerId } = req.params;
     const { action, durationInHours, reason } = req.body;
 
     if (!["SUSPEND", "BAN"].includes(action)) {
@@ -469,7 +462,7 @@ exports.updateSellerStatus = async (req, res) => {
         .json({ success: false, message: "Invalid action" });
     }
 
-    const seller = await Seller.findById(id);
+    const seller = await Seller.findById(sellerId);
     if (!seller) {
       return res
         .status(404)
@@ -574,7 +567,7 @@ exports.preventSignupIfBanned = async (req, res, next) => {
 };
 
 /**
- * @description Get a list of all sellers with basic details
+ * @description Controller to get a list of all sellers with basic details
  * @route GET /api/super-admin/get-all-sellers
  * @access Private (SuperAdmin)
  */
@@ -601,13 +594,13 @@ exports.getAllSellers = async (req, res) => {
 };
 
 /**
- * @description Update the status of a seller's store (approve, suspend, etc.)
- * @route PATCH /api/super-admin/update-store-status/:id
+ * @description Controller to update the status of a seller's store (approve, suspend, etc.)
+ * @route PATCH /api/super-admin/update-store-status/:storeId
  * @access Private (SuperAdmin)
  */
 exports.updateStoreStatus = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { storeId } = req.params;
     const { status } = req.body;
 
     if (!["PENDING", "ACTIVE", "SUSPENDED"].includes(status)) {
@@ -616,7 +609,7 @@ exports.updateStoreStatus = async (req, res) => {
         .json({ success: false, message: "Invalid status value" });
     }
 
-    const store = await Store.findById(id);
+    const store = await Store.findById(storeId);
     if (!store) {
       return res
         .status(404)

@@ -18,13 +18,8 @@ const {
   sendPasswordResetEmail,
 } = require("../../helpers/email-helper/email.helper");
 
-//------------------------------ SELLER BASE FUNCTIONS  ----------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-
 /**
- * @description Seller registration
+ * @description Controller for seller registration
  * @route POST /api/seller/signup-seller
  * @access Public
  */
@@ -153,7 +148,7 @@ exports.registerSeller = async (req, res) => {
 };
 
 /**
- * @description Seller login
+ * @description Controller for seller login
  * @route POST /api/seller/signin-seller
  * @access Public
  */
@@ -305,19 +300,19 @@ exports.loginSeller = async (req, res) => {
 };
 
 /**
- * @description Get seller profile by ID
- * @route GET /api/seller/get-seller-by-id/:id
+ * @description Controller to get seller profile by ID
+ * @route GET /api/seller/get-seller-by-id/:sellerId
  * @access Private (Seller)
  */
 exports.getSellerById = async (req, res) => {
-  const { id } = req.params;
-  if (!id) {
+  const { sellerId } = req.params;
+  if (!sellerId) {
     return res
       .status(400)
       .json({ success: false, message: "Invalid Seller ID" });
   }
   try {
-    const seller = await Seller.findById(id).select(
+    const seller = await Seller.findById(sellerId).select(
       "-password -loginAttempts -lockUntil -sessionId -deletionRequest"
     );
 
@@ -339,21 +334,21 @@ exports.getSellerById = async (req, res) => {
 };
 
 /**
- * @description Update seller profile
- * @route PUT /api/seller/update-seller/:id
+ * @description Controller to update seller profile
+ * @route PUT /api/seller/update-seller/:sellerId
  * @access Private (Seller)
  */
 exports.updateSeller = async (req, res) => {
-  const { id } = req.params;
+  const { sellerId } = req.params;
 
-  if (!id) {
+  if (!sellerId) {
     return res
       .status(400)
       .json({ success: false, message: "Invalid Seller ID" });
   }
 
   try {
-    let seller = await Seller.findById(id);
+    let seller = await Seller.findById(sellerId);
 
     if (!seller) {
       return res
@@ -400,7 +395,7 @@ exports.updateSeller = async (req, res) => {
 };
 
 /**
- * @description Reset seller password
+ * @description Controller to reset seller password
  * @route PATCH /api/seller/reset-seller-password
  * @access Private (Seller)
  */
@@ -465,7 +460,7 @@ exports.resetSellerPassword = async (req, res) => {
 };
 
 /**
- * @description Logout seller
+ * @description Controller for seller logout
  * @route POST /api/seller/logout-seller
  * @access Private (Seller)
  */
@@ -496,16 +491,16 @@ exports.logoutSeller = async (req, res, next) => {
 };
 
 /**
- * @description Request seller account deletion
- * @route POST /api/seller/request-deletion-account
+ * @description Controller to request seller account deletion
+ * @route POST /api/seller/request-deletion-account/:sellerId
  * @access Private (Seller)
  */
 exports.requestSellerDeletion = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { sellerId } = req.params;
     const { reason } = req.body;
 
-    if (!id) {
+    if (!sellerId) {
       return res.status(400).json({
         success: false,
         message: "Invalid Seller ID",
@@ -519,7 +514,7 @@ exports.requestSellerDeletion = async (req, res) => {
       });
     }
 
-    const seller = await Seller.findById(id);
+    const seller = await Seller.findById(sellerId);
     if (!seller) {
       return res.status(404).json({
         success: false,
@@ -559,7 +554,7 @@ exports.requestSellerDeletion = async (req, res) => {
 };
 
 /**
- * @description Forgot Password - Send reset link to email
+ * @description Controller for forgot password - Send reset link to email
  * @route POST /api/seller/forgot-password
  * @access Public
  */
@@ -614,7 +609,7 @@ exports.forgotPassword = async (req, res) => {
 };
 
 /**
- * @description Reset Password with token
+ * @description Controller to reset password with token
  * @route POST /api/seller/reset-password/:token
  * @access Public
  */
@@ -682,7 +677,7 @@ exports.resetPasswordWithToken = async (req, res) => {
 };
 
 /**
- * @description Verify reset token validity
+ * @description Controller to verify reset token validity
  * @route GET /api/seller/verify-reset-token/:token
  * @access Public
  */

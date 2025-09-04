@@ -4,22 +4,26 @@ const { authMiddleware } = require("../../middlewares/auth.middleware");
 const orderController = require("../../controllers/order-controller/order.controller");
 
 /**
- * @description Route to place new order
+ * @description Route to place a new order.
  */
 router.post("/place-order", authMiddleware, orderController.placeOrder);
 
 /**
- * @description Route to get all orders
+ * @description Route to get all orders.
  */
 router.get("/get-all-orders", authMiddleware, orderController.getAllOrders);
 
 /**
- * @description Route to cancel the order
+ * @description Route to cancel an order.
  */
-router.patch("/cancel-order/:id", authMiddleware, orderController.cancelOrder);
+router.patch(
+  "/cancel-order/:orderId",
+  authMiddleware,
+  orderController.cancelOrder
+);
 
 /**
- * @description Route to update status of the order
+ * @description Route to update the status of an order for a seller.
  */
 router.patch(
   "/seller/update-order-status/:orderId",
