@@ -3,8 +3,8 @@ const {
   sendComplaintNotificationEmails,
   sendComplaintStatusUpdateEmail,
 } = require("../../helpers/email-helper/email.helper");
-const User = require('../../models/user-models/user.model')
-const Seller = require('../../models/seller-models/seller-model')
+const User = require("../../models/user-models/user.model");
+const Seller = require("../../models/seller-models/seller-model");
 
 /**
  * @description Submit a complaint.
@@ -148,7 +148,7 @@ exports.updateComplaintStatus = async (req, res) => {
           updatedAt: complaint.updatedAt,
         },
         raiser.email,
-        raiser.userName
+        raiser.userName || raiser.email.split("@")[0] // fallback to email prefix
       );
 
       console.log("Status update email sent successfully to:", raiser.email);
