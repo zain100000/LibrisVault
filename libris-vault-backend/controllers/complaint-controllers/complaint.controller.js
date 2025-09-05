@@ -29,7 +29,7 @@ exports.submitComplaint = async (req, res) => {
       reason,
     });
 
-    const emailResult = await exports.sendComplaintNotificationEmails(
+    const emailResult = await sendComplaintNotificationEmails(
       {
         reason,
         complaintId: complaint._id,
