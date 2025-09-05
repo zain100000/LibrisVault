@@ -1,6 +1,7 @@
 const Complaint = require("../../models/complaint-models/complaint.model");
 const {
   sendComplaintNotificationEmails,
+  sendComplaintStatusUpdateEmail,
 } = require("../../helpers/email-helper/email.helper");
 
 /**
@@ -103,7 +104,8 @@ exports.updateComplaintStatus = async (req, res) => {
         .json({ success: false, message: "Invalid status" });
     }
 
-    const complaint = await Complaint.findById(complaintId);
+    const complaint =
+      await Complaint.findById(complaintId).populate("raisedBy.id");
     if (!complaint) {
       return res
         .status(404)
@@ -123,6 +125,28 @@ exports.updateComplaintStatus = async (req, res) => {
     }
 
     await complaint.save();
+
+    try {
+      const user = complaint.raisedBy.id;
+      const userEmail = user.email;
+      const userName = user.userName;
+
+      await sendComplaintStatusUpdateEmail(
+        {
+          complaintId: complaint._id,
+          status: complaint.status,
+          resolution: note || "",
+          updatedAt: complaint.updatedAt,
+        },
+        userEmail,
+        userName
+      );
+
+      console.log("Status update email sent successfully to:", userEmail);
+    } catch (emailError) {
+      console.error("Failed to send status update email:", emailError.message);
+      // Don't fail the request if email fails, just log the error
+    }
 
     return res.status(201).json({
       success: true,
