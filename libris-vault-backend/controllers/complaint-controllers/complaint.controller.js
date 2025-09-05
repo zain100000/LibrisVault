@@ -21,14 +21,15 @@ exports.submitComplaint = async (req, res) => {
     const role = req.user.role;
     const id = req.user.id;
     const email = req.user.email;
-    const name = req.user.userName || req.user.userName;
+
+    const name = req.user.userName || "User";
 
     const complaint = await Complaint.create({
       raisedBy: { id, role },
       reason,
     });
 
-    const emailResult = await sendComplaintNotificationEmails(
+    const emailResult = await exports.sendComplaintNotificationEmails(
       {
         reason,
         complaintId: complaint._id,
@@ -45,7 +46,10 @@ exports.submitComplaint = async (req, res) => {
       success: true,
       message: "Complaint submitted successfully",
       complaint,
-      emailSent: emailResult.userEmailSent,
+      emailSent: {
+        user: emailResult.userEmailSent,
+        admin: emailResult.adminEmailSent,
+      },
     });
   } catch (err) {
     console.error("Error submitting complaint:", err.message);
