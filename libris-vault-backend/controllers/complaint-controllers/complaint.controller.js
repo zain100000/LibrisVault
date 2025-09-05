@@ -127,25 +127,33 @@ exports.updateComplaintStatus = async (req, res) => {
     await complaint.save();
 
     try {
-      const user = complaint.raisedBy.id;
-      const userEmail = user.email;
-      const userName = user.userName;
+      let user;
+      if (complaint.raisedBy.role === "User") {
+        user = await User.findById(complaint.raisedBy.id).select(
+          "email userName"
+        );
+      } else if (complaint.raisedBy.role === "Seller") {
+        user = await Seller.findById(complaint.raisedBy.id).select(
+          "email name"
+        );
+      }
 
-      await sendComplaintStatusUpdateEmail(
-        {
-          complaintId: complaint._id,
-          status: complaint.status,
-          resolution: note || "",
-          updatedAt: complaint.updatedAt,
-        },
-        userEmail,
-        userName
-      );
+      if (user) {
+        await sendComplaintStatusUpdateEmail(
+          {
+            complaintId: complaint._id,
+            status: complaint.status,
+            resolution: note || "",
+            updatedAt: complaint.updatedAt,
+          },
+          user.email,
+          user.userName || user.name
+        );
+      }
 
       console.log("Status update email sent successfully to:", userEmail);
     } catch (emailError) {
       console.error("Failed to send status update email:", emailError.message);
-      // Don't fail the request if email fails, just log the error
     }
 
     return res.status(201).json({
