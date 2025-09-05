@@ -9,6 +9,13 @@ const Order = require("../../models/order-models/order.model");
  */
 exports.getPlatformAnalytics = async (req, res) => {
   try {
+    if (req.user.role !== "SUPERADMIN") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only SuperAdmin can get analytics.",
+      });
+    }
+
     const totalUsers = await User.countDocuments();
     const totalSellers = await Seller.countDocuments();
     const totalOrders = await Order.countDocuments();
@@ -42,6 +49,13 @@ exports.getPlatformAnalytics = async (req, res) => {
  */
 exports.getSellerPerformance = async (req, res) => {
   try {
+    if (req.user.role !== "SUPERADMIN") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only SuperAdmin can get analytics.",
+      });
+    }
+
     const sellers = await Order.aggregate([
       { $match: { status: { $nin: ["CANCELLED", "REFUNDED"] } } },
       {
@@ -72,6 +86,13 @@ exports.getSellerPerformance = async (req, res) => {
  */
 exports.getRevenueReport = async (req, res) => {
   try {
+    if (req.user.role !== "SUPERADMIN") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only SuperAdmin can get analytics.",
+      });
+    }
+    
     const report = await Order.aggregate([
       { $match: { status: { $nin: ["CANCELLED", "REFUNDED"] } } },
       {

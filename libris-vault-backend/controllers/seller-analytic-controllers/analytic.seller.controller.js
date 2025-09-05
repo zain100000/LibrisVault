@@ -8,6 +8,13 @@ const Book = require("../../models/book-models/book.model");
  */
 exports.getSalesReport = async (req, res) => {
   try {
+    if (req.user.role !== "SELLER") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only Seller can get analytics.",
+      });
+    }
+
     const sellerId = req.user.id;
     const { startDate, endDate, bookId, category } = req.query;
 
@@ -65,6 +72,13 @@ exports.getSalesReport = async (req, res) => {
  */
 exports.getBestSellingBooks = async (req, res) => {
   try {
+    if (req.user.role !== "SELLER") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only Seller can get analytics.",
+      });
+    }
+
     const sellerId = req.user.id;
 
     const filter = { status: { $nin: ["CANCELLED", "REFUNDED"] } };
@@ -120,6 +134,12 @@ exports.getBestSellingBooks = async (req, res) => {
  */
 exports.getCustomerReviews = async (req, res) => {
   try {
+    if (req.user.role !== "SELLER") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Only Seller can get analytics.",
+      });
+    }
     const sellerId = req.user.id;
 
     const books = await Book.find({ seller: sellerId })
