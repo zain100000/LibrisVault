@@ -776,3 +776,265 @@ exports.sendOrderStatusUpdateToUser = async (toEmail, order) => {
     html: getEmailTemplate(content, "Order Status Update"),
   });
 };
+
+/**
+ * @function sendComplaintNotificationEmails
+ * @description Sends email notifications when a complaint is submitted - to the user/seller and super admin
+ */
+exports.sendComplaintNotificationEmails = async (
+  complaintData,
+  userEmail,
+  userRole,
+  userName
+) => {
+  const { reason, complaintId, createdAt } = complaintData;
+
+  // Format date for display
+  const complaintDate = new Date(createdAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // Email content for the user/seller who submitted the complaint (Confirmation)
+  const userContent = `
+    <div style="text-align: center;">
+        <h2 style="color: #2d3748; font-size: 24px; margin-bottom: 20px; font-weight: 600;">Complaint Submitted Successfully</h2>
+        
+        <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%); padding: 25px; border-radius: 12px; margin-bottom: 25px;">
+            <p style="color: #1a73e8; font-size: 18px; margin: 0; font-weight: 500;">
+                Thank you for bringing this matter to our attention. We've received your complaint and will review it promptly.
+            </p>
+        </div>
+        
+        <div style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 25px; text-align: left;">
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">Complaint Details</h3>
+            
+            <table width="100%" style="border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600; width: 120px;">Complaint ID</td>
+                    <td style="padding: 8px 0; color: #2d3748;">#${complaintId}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600;">Submitted By</td>
+                    <td style="padding: 8px 0; color: #2d3748;">${userName} (${userRole})</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600;">Date & Time</td>
+                    <td style="padding: 8px 0; color: #2d3748;">${complaintDate}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600; vertical-align: top;">Reason</td>
+                    <td style="padding: 8px 0; color: #2d3748;">${reason}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">
+            Our support team will review your complaint and get back to you within 24-48 hours. 
+            You can check the status of your complaint in your dashboard.
+            </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="${process.env.FRONTEND_URL}/complaints" style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+                View My Complaints
+            </a>
+        </div>
+    </div>
+  `;
+
+  // Email content for super admin (Notification)
+  const adminContent = `
+    <div>
+        <h2 style="color: #d9363e; font-size: 24px; margin-bottom: 25px; font-weight: 600;">New Complaint Received</h2>
+        
+        <div style="background: #fff2f0; padding: 20px; border-radius: 8px; border-left: 4px solid #ff4d4f; margin-bottom: 25px;">
+            <p style="margin: 0; color: #d9363e; font-weight: 600;">
+                ⚠️ Attention Required: A new complaint has been submitted and requires review.
+            </p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+            <div style="background: #ffffff; border: 1px solid #ffccc7; border-radius: 8px; padding: 20px;">
+                <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">Complaint Information</h3>
+                <p style="margin: 8px 0; color: #4a5568;"><strong>Complaint ID:</strong> #${complaintId}</p>
+                <p style="margin: 8px 0; color:极速AI
+Continue
+#4a5568;"><strong>Submission Date:</strong> ${complaintDate}</p>
+                <p style="margin: 8px 0; color: #4a5568;"><strong>Priority:</strong> <span style="color: #fa8c16; font-weight: 600;">Medium</span></p>
+            </div>
+            
+            <div style="background: #ffffff; border: 1px solid #ffccc7; border-radius: 8px; padding: 20px;">
+                <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">User Information</h3>
+                <p style="margin: 8px 0; color: #4a5568;"><strong>Name:</strong> ${userName}</p>
+                <p style="margin: 8px 0; color: #4a5568;"><strong>Role:</strong> ${userRole}</p>
+                <p style="margin: 8px 0; color: #4a5568;"><strong>Email:</strong> ${userEmail}</p>
+            </div>
+        </div>
+        
+        <div style="background: #ffffff; border: 1px solid #ffccc7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">Complaint Details</h3>
+            
+            <div style="background: #fff2e8; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                <p style="margin: 0; color: #fa8c16; font-weight: 600;">Reason for Complaint:</p>
+                <p style="margin: 10px 0 0 0; color: #4a5568; line-height: 1.6;">${reason}</p>
+            </div>
+        </div>
+        
+        <div style="background: #f6ffed; padding: 15px; border-radius: 8px; border: 1px solid #b7eb8f; margin-bottom: 25px;">
+            <p style="margin: 0; color: #389e0d; font-weight: 600;">Action Required:</p>
+            <p style="margin: 10px 0 0 0; color: #4a5568; font-size: 14px;">
+                Please review this complaint in the admin dashboard and take appropriate action. 
+                Contact the user if additional information is needed.
+            </p>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="${process.env.ADMIN_URL}/complaints/${complaintId}" style="background: linear-gradient(135deg, #d9363e 0%, #a8071a 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+                Review Complaint
+            </a>
+        </div>
+    </div>
+  `;
+
+  try {
+    // Send confirmation email to the user/seller who submitted the complaint
+    const userEmailSent = await sendEmail({
+      to: userEmail,
+      subject: `Complaint Submitted Successfully - #${complaintId}`,
+      html: getEmailTemplate(userContent, "Complaint Confirmation"),
+    });
+
+    // Send notification email to super admin
+    const adminEmailSent = await sendEmail({
+      to: process.env.SUPER_ADMIN_EMAIL,
+      subject: `🚨 New Complaint Received - #${complaintId} from ${userName}`,
+      html: getEmailTemplate(adminContent, "New Complaint Alert"),
+    });
+
+    return {
+      userEmailSent,
+      adminEmailSent,
+    };
+  } catch (error) {
+    console.error(
+      "Error sending complaint notification emails:",
+      error.message
+    );
+    return {
+      userEmailSent: false,
+      adminEmailSent: false,
+      error: error.message,
+    };
+  }
+};
+
+/**
+ * @function sendComplaintStatusUpdateEmail
+ * @description Sends email notification when complaint status is updated
+ */
+exports.sendComplaintStatusUpdateEmail = async (
+  complaintData,
+  userEmail,
+  userName
+) => {
+  const { complaintId, status, resolution, updatedAt } = complaintData;
+
+  const statusColors = {
+    OPEN: "#1890ff",
+    IN_PROGRESS: "#fa8c16",
+    RESOLVED: "#52c41a",
+    CLOSED: "#722ed1",
+    REJECTED: "#f5222d",
+  };
+
+  const statusIcons = {
+    OPEN: "📋",
+    IN_PROGRESS: "⏳",
+    RESOLVED: "✅",
+    CLOSED: "🔒",
+    REJECTED: "❌",
+  };
+
+  const updateDate = new Date(updatedAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const content = `
+    <div style="text-align: center;">
+        <h2 style="color: #2d3748; font-size: 24px; margin-bottom: 20px; font-weight: 600;">Complaint Status Updated</h2>
+        
+        <div style="background: ${statusColors[status]}15; padding: 25px; border-radius: 12px; border-left: 4px solid ${statusColors[status]}; margin-bottom: 25px;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <span style="font-size: 32px;">${statusIcons[status]}</span>
+                <div>
+                    <h3 style="margin: 0; color: ${statusColors[status]}; font-weight: 600;">Status: ${status}</h3>
+                    <p style="margin: 5px 0 0 0; color: #4a5568;">Your complaint has been updated</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 25px; text-align: left;">
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">Complaint Details</h3>
+            
+            <table width="100%" style="border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600;">Complaint ID</td>
+                    <td style="padding: 8px 0; color: #2d3748;">#${complaintId}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600;">Updated On</td>
+                    <td style="padding: 8px 0; color: #2d3748;">${updateDate}</td>
+                </tr>
+                ${
+                  resolution
+                    ? `
+                <tr>
+                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600; vertical-align: top;">Resolution</td>
+                    <td style="padding: 8px 0; color: #2d3748;">${resolution}</td>
+                </tr>
+                `
+                    : ""
+                }
+            </table>
+        </div>
+        
+        ${
+          resolution
+            ? `
+        <div style="background: #f6ffed; padding: 15px; border-radius: 8px; border: 1px solid #b7eb8f; margin-bottom: 25px;">
+            <p style="margin: 0; color: #389e0d; font-weight: 600;">Resolution Details:</p>
+            <p style="margin: 10px 0 0 0; color: #4a5568;">${resolution}</p>
+        </div>
+        `
+            : ""
+        }
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="${process.env.FRONTEND_URL}/complaints/${complaintId}" style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+                View Complaint Details
+            </a>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 25px;">
+            <p style="margin: 0; color: #6c757d; font-size: 14px; text-align: center;">
+                Thank you for your patience. We're committed to resolving your concerns.
+            </p>
+        </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: userEmail,
+    subject: `Complaint Status Update - #${complaintId}`,
+    html: getEmailTemplate(content, "Complaint Status Update"),
+  });
+};

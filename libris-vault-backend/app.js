@@ -57,6 +57,7 @@ const ratingRoute = require("./routes/rating-routes/rating-route.js");
 const reviewRoute = require("./routes/review-routes/review.route.js");
 const bookRequestRoute = require("./routes/book-request-routes/book.request.route.js");
 const orderRoute = require("./routes/order-routes/order.route.js");
+const complaintRoute = require("./routes/complaint-routes/complaint.route.js");
 
 // ==================== API MIDDLEWARES ====================
 app.use("/api/super-admin", superAdminRoute);
@@ -71,6 +72,7 @@ app.use("/api/rating", ratingRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/request", bookRequestRoute);
 app.use("/api/order", orderRoute);
+app.use("/api/complaint", complaintRoute);
 
 // ==================== CRON JOBS ====================
 require("./utilities/cron/cron.js");
