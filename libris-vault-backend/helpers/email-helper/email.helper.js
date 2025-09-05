@@ -945,19 +945,17 @@ exports.sendComplaintStatusUpdateEmail = async (
   const { complaintId, status, resolution, updatedAt } = complaintData;
 
   const statusColors = {
-    OPEN: "#1890ff",
-    IN_PROGRESS: "#fa8c16",
+    OPENED: "#1890ff",
+    IN_REVIEW: "#fa8c16",
     RESOLVED: "#52c41a",
     CLOSED: "#722ed1",
-    REJECTED: "#f5222d",
   };
 
   const statusIcons = {
-    OPEN: "📋",
-    IN_PROGRESS: "⏳",
+    OPENED: "📩",
+    IN_REVIEW: "🕵️‍♂️",
     RESOLVED: "✅",
     CLOSED: "🔒",
-    REJECTED: "❌",
   };
 
   const updateDate = new Date(updatedAt).toLocaleDateString("en-US", {
@@ -969,65 +967,55 @@ exports.sendComplaintStatusUpdateEmail = async (
   });
 
   const content = `
-    <div style="text-align: center;">
-        <h2 style="color: #2d3748; font-size: 24px; margin-bottom: 20px; font-weight: 600;">Complaint Status Updated</h2>
-        
-        <div style="background: ${statusColors[status]}15; padding: 25px; border-radius: 12px; border-left: 4px solid ${statusColors[status]}; margin-bottom: 25px;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                <span style="font-size: 32px;">${statusIcons[status]}</span>
-                <div>
-                    <h3 style="margin: 0; color: ${statusColors[status]}; font-weight: 600;">Status: ${status}</h3>
-                    <p style="margin: 5px 0 0 0; color: #4a5568;">Your complaint has been updated</p>
-                </div>
-            </div>
+    <div style="max-width: 600px; margin: auto; font-family: Arial, sans-serif; color: #333;">
+
+        <!-- Header -->
+        <h2 style="text-align: center; color: #2d3748; font-size: 22px; font-weight: 700; margin-bottom: 15px;">
+          Complaint Update Notification
+        </h2>
+        <p style="text-align: center; font-size: 16px; color: #4a5568;">
+          Hello <strong>${userName}</strong>, we’ve updated the status of your complaint.
+        </p>
+
+        <!-- Status Block -->
+        <div style="background: ${statusColors[status]}15; padding: 20px; border-radius: 10px; border-left: 6px solid ${statusColors[status]}; margin: 20px 0;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: ${statusColors[status]};">
+              ${statusIcons[status]} Status: ${status.replace("_", " ")}
+            </h3>
+            <p style="margin: 8px 0 0 0; font-size: 14px; color: #4a5568;">
+              Updated on <strong>${updateDate}</strong>
+            </p>
         </div>
-        
-        <div style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin-bottom: 25px; text-align: left;">
-            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">Complaint Details</h3>
-            
-            <table width="100%" style="border-collapse: collapse;">
-                <tr>
-                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600;">Complaint ID</td>
-                    <td style="padding: 8px 0; color: #2d3748;">#${complaintId}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600;">Updated On</td>
-                    <td style="padding: 8px 0; color: #2d3748;">${updateDate}</td>
-                </tr>
-                ${
-                  resolution
-                    ? `
-                <tr>
-                    <td style="padding: 8px 0; color: #4a5568; font-weight: 600; vertical-align: top;">Resolution</td>
-                    <td style="padding: 8px 0; color: #2d3748;">${resolution}</td>
-                </tr>
-                `
-                    : ""
-                }
-            </table>
+
+        <!-- Complaint Info -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+            <p style="margin: 0; font-size: 15px;">
+              <strong>Complaint ID:</strong> #${complaintId}
+            </p>
+            ${
+              resolution
+                ? `
+            <p style="margin: 10px 0 0 0; font-size: 15px;">
+              <strong>Resolution Note:</strong><br>
+              <span style="color: #4a5568;">${resolution}</span>
+            </p>
+            `
+                : ""
+            }
         </div>
-        
-        ${
-          resolution
-            ? `
-        <div style="background: #f6ffed; padding: 15px; border-radius: 8px; border: 1px solid #b7eb8f; margin-bottom: 25px;">
-            <p style="margin: 0; color: #389e0d; font-weight: 600;">Resolution Details:</p>
-            <p style="margin: 10px 0 0 0; color: #4a5568;">${resolution}</p>
-        </div>
-        `
-            : ""
-        }
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="${process.env.FRONTEND_URL}/complaints/${complaintId}" style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
-                View Complaint Details
+
+        <!-- Call to Action -->
+        <div style="text-align: center; margin-top: 25px;">
+            <a href="${process.env.FRONTEND_URL}/complaints/${complaintId}" 
+              style="background: #1a73e8; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+              View Complaint Details
             </a>
         </div>
-        
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 25px;">
-            <p style="margin: 0; color: #6c757d; font-size: 14px; text-align: center;">
-                Thank you for your patience. We're committed to resolving your concerns.
-            </p>
+
+        <!-- Footer -->
+        <div style="margin-top: 30px; font-size: 13px; color: #6c757d; text-align: center;">
+            <p style="margin: 0;">Thank you for your patience while we work to resolve your issue.</p>
+            <p style="margin: 5px 0 0 0;">- The Support Team</p>
         </div>
     </div>
   `;
