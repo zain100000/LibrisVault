@@ -6,7 +6,7 @@ const Seller = require("../../models/seller-models/seller-model");
 const Store = require("../../models/store-models/store.model");
 const Book = require("../../models/book-models/book.model");
 const Promotion = require("../../models/promotion-models/promotion.model");
-const Order = require("../../models/order.models/order.model");
+const Order = require("../../models/order-models/order.model");
 const {
   uploadToCloudinary,
   deleteFromCloudinary,

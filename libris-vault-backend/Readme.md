@@ -53,6 +53,7 @@ A Node.js RESTful API for managing an online bookstore platform with multi-role 
 
 libris-vault-backend/
 ├── controllers/ # Business logic for each route
+├── analytic-controllers/
 │ ├── book-controllers/
 │ ├── book-request-controllers/
 │ ├── cart-controllers/
@@ -61,6 +62,7 @@ libris-vault-backend/
 │ ├── otp-controllers/
 │ ├── promotion-controllers/
 │ ├── rating-controllers/
+│ ├── report-controllers/
 │ ├── review-controllers/
 │ ├── seller-controllers/
 │ ├── store-controllers/
@@ -69,6 +71,7 @@ libris-vault-backend/
 ├── helpers/ # Helper functions
 │ ├── email-helper/
 │ ├── password-helper/
+│ ├── report-exporter-helper/
 │ └── token-helper/
 ├── middlewares/ # Custom middlewares
 │ ├── auth.middleware.js
@@ -84,6 +87,7 @@ libris-vault-backend/
 │ ├── super-admin-models/
 │ └── user-models/
 ├── routes/ # Route definitions
+│ ├── analytic-routes/
 │ ├── book-request-routes/
 │ ├── book-routes/
 │ ├── cart-routes/
@@ -92,6 +96,7 @@ libris-vault-backend/
 │ ├── otp-routes/
 │ ├── promotion-routes/
 │ ├── rating-routes/
+│ ├── report-routes/
 │ ├── review-routes/
 │ ├── seller-routes/
 │ ├── store-routes/
