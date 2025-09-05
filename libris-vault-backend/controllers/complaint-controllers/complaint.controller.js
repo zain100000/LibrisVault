@@ -104,8 +104,7 @@ exports.updateComplaintStatus = async (req, res) => {
         .json({ success: false, message: "Invalid status" });
     }
 
-    const complaint =
-      await Complaint.findById(complaintId).populate("raisedBy.id");
+    const complaint = await Complaint.findById(complaintId);
     if (!complaint) {
       return res
         .status(404)
@@ -126,37 +125,36 @@ exports.updateComplaintStatus = async (req, res) => {
 
     await complaint.save();
 
-    try {
-      let user;
-      if (complaint.raisedBy.role === "User") {
-        user = await User.findById(complaint.raisedBy.id).select(
-          "email userName"
-        );
-      } else if (complaint.raisedBy.role === "Seller") {
-        user = await Seller.findById(complaint.raisedBy.id).select(
-          "email name"
-        );
-      }
-
-      if (user) {
-        await sendComplaintStatusUpdateEmail(
-          {
-            complaintId: complaint._id,
-            status: complaint.status,
-            resolution: note || "",
-            updatedAt: complaint.updatedAt,
-          },
-          user.email,
-          user.userName || user.name
-        );
-      }
-
-      console.log("Status update email sent successfully to:", userEmail);
-    } catch (emailError) {
-      console.error("Failed to send status update email:", emailError.message);
+    // 🔹 Fetch the user/seller who raised the complaint
+    let raiser = null;
+    if (complaint.raisedBy.role === "USER") {
+      raiser = await User.findById(complaint.raisedBy.id).select(
+        "email userName"
+      );
+    } else if (complaint.raisedBy.role === "SELLER") {
+      raiser = await Seller.findById(complaint.raisedBy.id).select(
+        "email userName"
+      );
     }
 
-    return res.status(201).json({
+    if (raiser && raiser.email) {
+      await sendComplaintStatusUpdateEmail(
+        {
+          complaintId: complaint._id,
+          status: complaint.status,
+          resolution: note || "",
+          updatedAt: complaint.updatedAt,
+        },
+        raiser.email,
+        raiser.userName
+      );
+
+      console.log("Status update email sent successfully to:", raiser.email);
+    } else {
+      console.warn("No email found for complaint raiser.");
+    }
+
+    return res.status(200).json({
       success: true,
       message: "Complaint updated successfully",
       complaint,
