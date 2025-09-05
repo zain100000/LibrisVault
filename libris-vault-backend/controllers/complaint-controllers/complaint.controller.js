@@ -3,6 +3,8 @@ const {
   sendComplaintNotificationEmails,
   sendComplaintStatusUpdateEmail,
 } = require("../../helpers/email-helper/email.helper");
+const User = require('../../models/user-models/user.model')
+const Seller = require('../../models/seller-models/seller-model')
 
 /**
  * @description Submit a complaint.
