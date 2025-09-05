@@ -1,4 +1,7 @@
 const Complaint = require("../../models/complaint-models/complaint.model");
+const {
+  sendComplaintNotificationEmails,
+} = require("../../helpers/email-helper/email.helper");
 
 /**
  * @description Submit a complaint.
@@ -25,7 +28,7 @@ exports.submitComplaint = async (req, res) => {
       reason,
     });
 
-    const emailResult = await exports.sendComplaintNotificationEmails(
+    const emailResult = await sendComplaintNotificationEmails(
       {
         reason,
         complaintId: complaint._id,
