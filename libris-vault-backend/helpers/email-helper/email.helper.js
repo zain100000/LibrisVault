@@ -862,16 +862,16 @@ exports.sendComplaintNotificationEmails = async (
             <div style="background: #ffffff; border: 1px solid #ffccc7; border-radius: 8px; padding: 20px;">
                 <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">Complaint Information</h3>
                 <p style="margin: 8px 0; color: #4a5568;"><strong>Complaint ID:</strong> #${complaintId}</p>
-                <p style="margin: 8px 0; color:极速AI
-Continue
-#4a5568;"><strong>Submission Date:</strong> ${complaintDate}</p>
+                <p style="margin: 8px 0; color: #4a5568;"><strong>Submission Date:</strong> ${complaintDate}</p>
                 <p style="margin: 8px 0; color: #4a5568;"><strong>Priority:</strong> <span style="color: #fa8c16; font-weight: 600;">Medium</span></p>
             </div>
             
             <div style="background: #ffffff; border: 1px solid #ffccc7; border-radius: 8px; padding: 20px;">
                 <h3 style="color: #2d3748; margin: 0 0 15px 0; font-weight: 600;">User Information</h3>
                 <p style="margin: 8px 0; color: #4a5568;"><strong>Name:</strong> ${userName}</p>
-                <p style="margin: 8px 0; color: #4a5568;"><strong>Role:</strong> ${userRole}</p>
+                <p style="margin: 8px 0; color: #极速AI
+Continue
+#4a5568;"><strong>Role:</strong> ${userRole}</p>
                 <p style="margin: 8px 0; color: #4a5568;"><strong>Email:</strong> ${userEmail}</p>
             </div>
         </div>
@@ -894,7 +894,7 @@ Continue
         </div>
         
         <div style="text-align: center;">
-            <a href="${process.env.ADMIN_URL}/complaints/${complaintId}" style="background: linear-gradient(135deg, #d9363e 0%, #a8071a 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+            <a href="${process.env.ADMIN_URL || process.env.FRONTEND_URL}/complaints/${complaintId}" style="background: linear-gradient(135deg, #d9363e 0%, #a8071a 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
                 Review Complaint
             </a>
         </div>
@@ -909,9 +909,9 @@ Continue
       html: getEmailTemplate(userContent, "Complaint Confirmation"),
     });
 
-    // Send notification email to super admin
+    // Send notification email to super admin (hardcoded email)
     const adminEmailSent = await sendEmail({
-      to: process.env.SUPER_ADMIN_EMAIL,
+      to: "librisvault@gmail.com", // Hardcoded super admin email
       subject: `🚨 New Complaint Received - #${complaintId} from ${userName}`,
       html: getEmailTemplate(adminContent, "New Complaint Alert"),
     });

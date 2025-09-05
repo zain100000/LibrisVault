@@ -21,7 +21,7 @@ exports.submitComplaint = async (req, res) => {
     const role = req.user.role;
     const id = req.user.id;
     const email = req.user.email;
-    const name = req.user.name || req.user.userName;
+    const name = req.user.userName || req.user.userName;
 
     const complaint = await Complaint.create({
       raisedBy: { id, role },
