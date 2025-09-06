@@ -1,7 +1,3 @@
-import { NavLink, useLocation } from "react-router-dom";
-import "../../styles/global.styles.css";
-import "./Sidebar.utility.css";
-
 /**
  * Sidebar Component
  *
@@ -16,6 +12,11 @@ import "./Sidebar.utility.css";
  *   <Sidebar />
  * )
  */
+
+import { NavLink, useLocation } from "react-router-dom";
+import "../../styles/global.styles.css";
+import "./Sidebar.utility.css";
+
 const Sidebar = () => {
   const location = useLocation();
 

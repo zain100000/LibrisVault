@@ -1,6 +1,3 @@
-import "../../styles/global.styles.css";
-import "./Loader.utility.css";
-
 /**
  * Loader Component
  *
@@ -14,6 +11,10 @@ import "./Loader.utility.css";
  *
  * @returns {JSX.Element} A centered animated loader element.
  */
+
+import "../../styles/global.styles.css";
+import "./Loader.utility.css";
+
 const Loader = () => {
   return (
     <section id="loader">

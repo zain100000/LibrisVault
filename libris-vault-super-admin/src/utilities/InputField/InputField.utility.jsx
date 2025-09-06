@@ -1,6 +1,3 @@
-import "../../styles/global.styles.css";
-import "./InputField.utility.css";
-
 /**
  * InputField Component
  *
@@ -55,6 +52,10 @@ import "./InputField.utility.css";
  *   onValueChange={(e) => setCategory(e.target.value)}
  * />
  */
+
+import "../../styles/global.styles.css";
+import "./InputField.utility.css";
+
 const InputField = ({
   icon,
   value,

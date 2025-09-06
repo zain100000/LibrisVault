@@ -1,3 +1,17 @@
+/**
+ * ForgotPassword Component
+ *
+ * Provides the form for requesting a password reset.
+ * Includes email validation and error handling.
+ * Redirects to confirmation page or shows success message.
+ *
+ * @component
+ * @example
+ * return (
+ *   <ForgotPassword />
+ * )
+ */
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../../styles/global.styles.css";
@@ -13,19 +27,6 @@ import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { forgotPassword } from "../../../redux/slices/auth.slice";
 
-/**
- * ForgotPassword Component
- *
- * Provides the form for requesting a password reset.
- * Includes email validation and error handling.
- * Redirects to confirmation page or shows success message.
- *
- * @component
- * @example
- * return (
- *   <ForgotPassword />
- * )
- */
 const ForgotPassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();

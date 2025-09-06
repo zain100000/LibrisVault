@@ -7,6 +7,7 @@
  * Features:
  * - Login: Authenticates an existing Super Admin
  * - Forgot Password: Send Email Notification For Password Reset
+ * - Reset Password: To Reset Admin Password
  * - Logout: Ends the current session
  *
  * State Shape:
@@ -138,11 +139,11 @@ export const resetPassword = createAsyncThunk(
   "super-admin/reset-password",
   async (resetData, { rejectWithValue }) => {
     try {
-      const { password, token } = resetData;
+      const { newPassword, token } = resetData;
 
       const response = await axios.post(
         `${BACKEND_API_URL}/super-admin/reset-password/${token}`,
-        { password }
+        { newPassword }
       );
 
       console.log("Reset password response:", response.data);

@@ -12,6 +12,7 @@
 
 import { Outlet } from "react-router-dom";
 import "./Dashboard.layout.css";
+import Header from '../../utilities/Header/Header.utility'
 
 /**
  * Dashboard page layout wrapper.
@@ -21,8 +22,8 @@ import "./Dashboard.layout.css";
 const DashboardLayout = () => {
   return (
     <div className="dashboard-layout">
-      {/* <Header />
-      <div className="d-flex">
+      <Header />
+      {/* <div className="d-flex">
         <Sidebar /> */}
       <main className="content">
         <Outlet />

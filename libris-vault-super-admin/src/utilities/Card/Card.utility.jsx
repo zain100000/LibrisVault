@@ -1,6 +1,3 @@
-import "../../styles/global.styles.css";
-import "./Card.utility.css";
-
 /**
  * Card Component
  *
@@ -27,6 +24,10 @@ import "./Card.utility.css";
  *   onClick={() => console.log("Card clicked")}
  * />
  */
+
+import "../../styles/global.styles.css";
+import "./Card.utility.css";
+
 const Card = ({ title, stats = [], onClick, icon, customClassName = "" }) => {
   return (
     <section id="card">

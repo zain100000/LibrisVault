@@ -1,8 +1,3 @@
-import ReactDOM from "react-dom";
-import "../../styles/global.styles.css";
-import "./Modal.utility.css";
-import Loader from "../customLoader/Loader";
-
 /**
  * Modal Component
  *
@@ -35,6 +30,12 @@ import Loader from "../customLoader/Loader";
  *   <p>Are you sure you want to delete this item?</p>
  * </Modal>
  */
+
+import ReactDOM from "react-dom";
+import "../../styles/global.styles.css";
+import "./Modal.utility.css";
+import Loader from "../customLoader/Loader";
+
 const Modal = ({ isOpen, onClose, title, children, buttons = [], icon }) => {
   return ReactDOM.createPortal(
     <section id="modal">

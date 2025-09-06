@@ -8,7 +8,7 @@ const bookController = require("../../controllers/book-controllers/book.controll
  * @description Creates a new book listing.
  */
 router.post(
-  "/upload-book",
+  "/book/upload-book",
   authMiddleware,
   bookPictureUpload.upload,
   bookController.uploadBook
@@ -17,18 +17,18 @@ router.post(
 /**
  * @description Retrieves all book listings.
  */
-router.get("/get-all-books", authMiddleware, bookController.getAllBooks);
+router.get("/book/get-all-books", authMiddleware, bookController.getAllBooks);
 
 /**
  * @description Retrieves a single book by its ID.
  */
-router.get("/get-book/:bookId", authMiddleware, bookController.getBookById);
+router.get("/book/get-book/:bookId", authMiddleware, bookController.getBookById);
 
 /**
  * @description Updates a book's details by its ID.
  */
 router.patch(
-  "/update-book/:bookId",
+  "/book/update-book/:bookId",
   authMiddleware,
   bookPictureUpload.upload,
   bookController.updateBook
@@ -38,7 +38,7 @@ router.patch(
  * @description Deletes a book by its ID.
  */
 router.delete(
-  "/delete-book/:bookId",
+  "/book/delete-book/:bookId",
   authMiddleware,
   bookController.deleteBook
 );
@@ -47,7 +47,7 @@ router.delete(
  * @description Creates a new book listing by providing an ISBN.
  */
 router.post(
-  "/upload-book-by-isbn",
+  "/book/upload-book-by-isbn",
   authMiddleware,
   bookPictureUpload.upload,
   bookController.uploadBookByISBN

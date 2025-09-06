@@ -1,7 +1,3 @@
-import Loader from "../Loader/Loader.utility.jsx";
-import "../../styles/global.styles.css";
-import "./Button.utility.css";
-
 /**
  * Button Component
  *
@@ -37,6 +33,11 @@ import "./Button.utility.css";
  * // Loading button
  * <Button title="Loading..." loading={true} />
  */
+
+import Loader from "../Loader/Loader.utility.jsx";
+import "../../styles/global.styles.css";
+import "./Button.utility.css";
+
 const Button = ({
   onPress,
   title,

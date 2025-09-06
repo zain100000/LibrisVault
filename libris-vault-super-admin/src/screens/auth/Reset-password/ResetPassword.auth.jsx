@@ -1,18 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import "../../../styles/global.styles.css";
-import "./ResetPassword.auth.css";
-import Logo from "../../../assets/logo/logo.png";
-import InputField from "../../../utilities/InputField/InputField.utility";
-import Button from "../../../utilities/Button/Button.utility";
-import {
-  validatePassword,
-  validateFields,
-} from "../../../utilities/Validations/Validation.utility";
-import { toast } from "react-hot-toast";
-import { useDispatch } from "react-redux";
-import { resetPassword } from "../../../redux/slices/auth.slice";
-
 /**
  * ResetPassword Component
  *
@@ -26,10 +11,26 @@ import { resetPassword } from "../../../redux/slices/auth.slice";
  *   <ResetPassword />
  * )
  */
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import "../../../styles/global.styles.css";
+import "./ResetPassword.auth.css";
+import Logo from "../../../assets/logo/logo.png";
+import InputField from "../../../utilities/InputField/InputField.utility";
+import Button from "../../../utilities/Button/Button.utility";
+import {
+  validatePassword,
+  validateFields,
+} from "../../../utilities/Validations/Validation.utility";
+import { toast } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { resetPassword } from "../../../redux/slices/auth.slice";
+
 const ResetPassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -56,6 +57,11 @@ const ResetPassword = () => {
   const handleResetPassword = async (event) => {
     event.preventDefault();
 
+    if (!token) {
+      toast.error("Reset token is missing");
+      return;
+    }
+
     const fields = { password };
     const errors = validateFields(fields);
     const errorKeys = Object.keys(errors);
@@ -71,18 +77,20 @@ const ResetPassword = () => {
 
     try {
       const resetPasswordData = {
-        password,
+        newPassword: password,
         token,
       };
-      const resultAction = await dispatch(resetPassword(resetPasswordData));
 
+      console.log("Sending reset request with:", resetPasswordData);
+
+      const resultAction = await dispatch(resetPassword(resetPasswordData));
       if (resetPassword.fulfilled.match(resultAction)) {
         const successMessage =
           resultAction.payload.message || "Password reset successfully!";
         toast.success(successMessage);
 
         setTimeout(() => {
-          navigate("/signin");
+          navigate("/");
         }, 2000);
 
         setPassword("");

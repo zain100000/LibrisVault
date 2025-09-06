@@ -11,7 +11,7 @@ const storeController = require("../../controllers/store-controllers/store.contr
  * @description Route to create a new store.
  */
 router.post(
-  "/create-store",
+  "/:sellerId/create-store",
   authMiddleware,
   storeLogoUpload.upload,
   storeController.createStore

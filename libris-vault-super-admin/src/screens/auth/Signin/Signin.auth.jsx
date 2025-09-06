@@ -1,3 +1,17 @@
+/**
+ * Signin Component
+ *
+ * Provides the authentication form for logging into the admin panel.
+ * Includes input validation, error handling, and Redux-powered login action.
+ * Redirects to the admin dashboard on successful login.
+ *
+ * @component
+ * @example
+ * return (
+ *   <Signin />
+ * )
+ */
+
 import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "../../../styles/global.styles.css";
@@ -14,19 +28,6 @@ import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { login } from "../../../redux/slices/auth.slice";
 
-/**
- * Signin Component
- *
- * Provides the authentication form for logging into the admin panel.
- * Includes input validation, error handling, and Redux-powered login action.
- * Redirects to the admin dashboard on successful login.
- *
- * @component
- * @example
- * return (
- *   <Signin />
- * )
- */
 const Signin = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -90,9 +91,9 @@ const Signin = () => {
           resultAction.payload.message || "Login successful";
         toast.success(successMessage);
 
-        // setTimeout(() => {
-        //   navigate("/super-admin/dashboard");
-        // }, 2000);
+        setTimeout(() => {
+          navigate("/super-admin/dashboard");
+        }, 2000);
 
         setEmail("");
         setPassword("");
@@ -180,7 +181,10 @@ const Signin = () => {
                   </div>
 
                   <div className="forgot-password-container">
-                    <NavLink className="fg-label" to={"/super-admin/forgot-password"}>
+                    <NavLink
+                      className="fg-label"
+                      to={"/super-admin/forgot-password"}
+                    >
                       Forgot Password
                     </NavLink>
                   </div>
