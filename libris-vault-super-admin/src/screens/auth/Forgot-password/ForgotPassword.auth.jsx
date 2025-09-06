@@ -79,7 +79,7 @@ const ForgotPassword = () => {
         toast.success(successMessage);
 
         setTimeout(() => {
-          navigate("/super-admin/reset-password");
+          navigate("/");
         }, 2000);
 
         setEmail("");

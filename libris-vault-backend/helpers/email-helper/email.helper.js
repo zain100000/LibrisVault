@@ -72,12 +72,7 @@ const getEmailTemplate = (content, title = "") => `
                                     This email was sent to you as a registered user of LIBRIS VAULT.<br>
                                     If you believe you received this email in error, please contact our support team.
                                 </span>
-                            </p>
-                            <p style="margin: 20px 0 0 0;">
-                                <a href="${process.env.FRONTEND_URL}" style="color: #1a73e8; text-decoration: none; font-size: 14px;">Visit Our Website</a> • 
-                                <a href="${process.env.FRONTEND_URL}/contact" style="color: #1a73e8; text-decoration: none; font-size: 14px;">Contact Support</a> • 
-                                <a href="${process.env.FRONTEND_URL}/unsubscribe" style="color: #1a73e8; text-decoration: none; font-size: 14px;">Unsubscribe</a>
-                            </p>
+                            </p>                            
                         </td>
                     </tr>
                 </table>
@@ -128,7 +123,7 @@ exports.sendOTPEmail = async (toEmail, otp) => {
  * @description Generates the email template for password reset instructions.
  */
 exports.sendPasswordResetEmail = async (toEmail, resetToken) => {
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetLink = `${process.env.FRONTEND_URL}/super-admin/reset-password?token=${resetToken}`;
   const content = `
     <div style="text-align: center;">
         <h2 style="color: #2d3748; font-size: 24px; margin-bottom: 20px; font-weight: 600;">Password Reset Request</h2>
