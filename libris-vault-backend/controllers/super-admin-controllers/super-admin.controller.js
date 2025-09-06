@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const SuperAdmin = require("../../models/super-admin-models/super-admin.model");
 const Seller = require("../../models/seller-models/seller-model");
