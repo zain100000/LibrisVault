@@ -5,8 +5,8 @@
  * registration, login, and logout flows.
  *
  * Features:
- * - Register: Creates a new Super Admin account
  * - Login: Authenticates an existing Super Admin
+ * - Forgot Password: Send Email Notification For Password Reset
  * - Logout: Ends the current session
  *
  * State Shape:
@@ -25,43 +25,6 @@ import CONFIG from "../config/Config.config";
 const { BACKEND_API_URL } = CONFIG;
 
 /**
- * Register a new Super Admin.
- *
- * @param {Object} formData - Registration form data.
- * @returns {Promise<{ user: Object, token: string }>} User info and JWT token.
- */
-export const register = createAsyncThunk(
-  "super-admin/register",
-  async (formData, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        `${BACKEND_API_URL}/super-admin/signup-super-admin`,
-        formData
-      );
-
-      const { token, superAdmin } = response.data;
-
-      if (!superAdmin || !token) {
-        throw new Error("Invalid register response format");
-      }
-
-      const user = {
-        id: superAdmin.id,
-        email: superAdmin.email,
-        userName: superAdmin.userName,
-      };
-
-      localStorage.setItem("authToken", token);
-
-      return { user, token };
-    } catch (error) {
-      console.error("Register Error:", error.response?.data || error.message);
-      return rejectWithValue(error.response?.data || { error: error.message });
-    }
-  }
-);
-
-/**
  * Login an existing Super Admin.
  *
  * @param {Object} loginData - Login credentials.
@@ -78,9 +41,9 @@ export const login = createAsyncThunk(
 
       console.log("Login response:", response.data);
 
-      const { token, superAdmin } = response.data;
+      const { token, superAdmin, message, success } = response.data;
 
-      if (!superAdmin || !token) {
+      if (!success || !superAdmin || !token) {
         throw new Error("Invalid login response format");
       }
 
@@ -92,10 +55,126 @@ export const login = createAsyncThunk(
 
       localStorage.setItem("authToken", token);
 
-      return { user, token };
+      return { user, token, message };
     } catch (error) {
       console.error("Login Error:", error.response?.data || error.message);
-      return rejectWithValue(error.response?.data || { error: error.message });
+
+      const backendError = error.response?.data;
+
+      if (backendError) {
+        return rejectWithValue({
+          message: backendError.message || "Login failed",
+          success: backendError.success || false,
+          attempts: backendError.attempts,
+          status: error.response?.status,
+        });
+      }
+
+      return rejectWithValue({
+        message: error.message || "Network error occurred",
+        success: false,
+        status: 0,
+      });
+    }
+  }
+);
+
+/**
+ * Send forgot password email to Super Admin.
+ *
+ * @param {Object} emailData - Email address for password reset.
+ * @returns {Promise<{ message: string }>} Success message.
+ */
+export const forgotPassword = createAsyncThunk(
+  "super-admin/forgot-password",
+  async (emailData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${BACKEND_API_URL}/super-admin/forgot-password`,
+        emailData
+      );
+
+      console.log("Forgot password response:", response.data);
+
+      const { message, success } = response.data;
+
+      if (!success) {
+        throw new Error("Invalid forgot password response format");
+      }
+
+      return { message };
+    } catch (error) {
+      console.error(
+        "Forgot Password Error:",
+        error.response?.data || error.message
+      );
+
+      const backendError = error.response?.data;
+
+      if (backendError) {
+        return rejectWithValue({
+          message: backendError.message || "Password reset failed",
+          success: backendError.success || false,
+          status: error.response?.status,
+        });
+      }
+
+      return rejectWithValue({
+        message: error.message || "Network error occurred",
+        success: false,
+        status: 0,
+      });
+    }
+  }
+);
+
+/**
+ * Reset password for Super Admin using reset token.
+ *
+ * @param {Object} resetData - New password and reset token.
+ * @returns {Promise<{ message: string }>} Success message.
+ */
+export const resetPassword = createAsyncThunk(
+  "super-admin/reset-password",
+  async (resetData, { rejectWithValue }) => {
+    try {
+      const { password, token } = resetData;
+
+      const response = await axios.post(
+        `${BACKEND_API_URL}/super-admin/reset-password/${token}`,
+        { password }
+      );
+
+      console.log("Reset password response:", response.data);
+
+      const { message, success } = response.data;
+
+      if (!success) {
+        throw new Error("Invalid reset password response format");
+      }
+
+      return { message };
+    } catch (error) {
+      console.error(
+        "Reset Password Error:",
+        error.response?.data || error.message
+      );
+
+      const backendError = error.response?.data;
+
+      if (backendError) {
+        return rejectWithValue({
+          message: backendError.message || "Password reset failed",
+          success: backendError.success || false,
+          status: error.response?.status,
+        });
+      }
+
+      return rejectWithValue({
+        message: error.message || "Network error occurred",
+        success: false,
+        status: 0,
+      });
     }
   }
 );
@@ -119,11 +198,16 @@ export const logout = createAsyncThunk(
         }
       );
 
-      return response.data;
+      const message = response.data?.message;
+      return { message, ...response.data };
     } catch (error) {
-      return rejectWithValue(
-        error?.response?.data || { message: "Unknown error occurred." }
-      );
+      const errorMessage =
+        error.response?.data?.message || "Unknown error occurred";
+
+      return rejectWithValue({
+        message: errorMessage,
+        ...error.response?.data,
+      });
     }
   }
 );
@@ -142,21 +226,6 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Register
-      .addCase(register.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(register.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-      })
-      .addCase(register.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
       // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
@@ -168,6 +237,34 @@ const authSlice = createSlice({
         state.token = action.payload.token;
       })
       .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Forgot Password
+      .addCase(forgotPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+        // Forgot password success - no state changes needed
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Reset Password
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+        // Reset password success - no state changes needed
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

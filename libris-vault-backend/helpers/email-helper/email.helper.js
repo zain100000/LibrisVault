@@ -145,14 +145,6 @@ exports.sendPasswordResetEmail = async (toEmail, resetToken) => {
         <p style="color: #718096; font-size: 14px; margin: 20px 0;">
             This password reset link is valid for 1 hour. If you did not request a password reset, please ignore this email.
         </p>
-        
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 25px; text-align: left;">
-            <p style="margin: 0 0 10px 0; color: #4a5568; font-size: 13px; font-weight: 600;">Alternative method:</p>
-            <p style="margin: 0; color: #6c757d; font-size: 13px; word-break: break-all;">
-                If the button doesn't work, copy and paste this link into your browser:<br>
-                <a href="${resetLink}" style="color: #1a73e8; text-decoration: none;">${resetLink}</a>
-            </p>
-        </div>
     </div>
   `;
 

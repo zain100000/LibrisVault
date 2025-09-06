@@ -14,16 +14,16 @@
  * - Responsive font scaling for different breakpoints
  */
 
-@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
 :root {
   /* Typography */
-  --font-family: "Poppins", sans-serif;
+  --font-family: "Montserrat", sans-serif;
 
   /* Color Palette */
-  --primary: #54408C;
-  --secondary: #7D64C3;
-  --tertiary: #3784FB;
+  --primary: #54408c;
+  --secondary: #7d64c3;
+  --tertiary: #3784fb;
   --success: #35f338;
   --error: #f00221;
   --white: #ffffff;

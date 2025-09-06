@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "../../../styles/global.styles.css";
 import "./Signin.auth.css";
 import Logo from "../../../assets/logo/logo.png";
@@ -86,24 +86,56 @@ const Signin = () => {
       const resultAction = await dispatch(login(loginData));
 
       if (login.fulfilled.match(resultAction)) {
-        toast.success("Login Successfully");
-        setTimeout(() => {
-          navigate("/admin/dashboard");
-        }, 2000);
+        const successMessage =
+          resultAction.payload.message || "Login successful";
+        toast.success(successMessage);
+
+        // setTimeout(() => {
+        //   navigate("/super-admin/dashboard");
+        // }, 2000);
 
         setEmail("");
         setPassword("");
-      } else {
-        const errorMessage =
-          login.rejected.match(resultAction) && resultAction.payload
-            ? resultAction.payload.error || "Login failed. Please try again."
-            : "Unexpected response from server.";
+      } else if (login.rejected.match(resultAction)) {
+        const errorPayload = resultAction.payload;
+
+        let errorMessage = "Login failed. Please try again.";
+
+        if (errorPayload) {
+          errorMessage = errorPayload.message || errorMessage;
+
+          if (
+            errorPayload.status === 423 &&
+            errorPayload.message?.includes("Account locked")
+          ) {
+            toast.error(errorPayload.message, { autoClose: 5000 });
+            return;
+          }
+
+          if (
+            errorPayload.status === 423 &&
+            errorPayload.message?.includes("Too many failed")
+          ) {
+            toast.error(errorPayload.message, { autoClose: 6000 });
+            return;
+          }
+
+          if (errorPayload.attempts !== undefined) {
+            const remainingAttempts = 3 - errorPayload.attempts;
+            if (remainingAttempts > 0) {
+              toast.error(
+                `${errorMessage} (${remainingAttempts} attempts remaining)`
+              );
+              return;
+            }
+          }
+        }
 
         toast.error(errorMessage);
       }
     } catch (err) {
-      console.error("An error occurred during login:", err);
-      toast.error("An error occurred. Please try again.");
+      console.error("An unexpected error occurred during login:", err);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -131,6 +163,7 @@ const Signin = () => {
                       editable={true}
                       value={email}
                       onChange={handleEmailChange}
+                      icon={<i className="fas fa-envelope"></i>}
                     />
                   </div>
 
@@ -142,11 +175,14 @@ const Signin = () => {
                       editable={true}
                       value={password}
                       onChange={handlePasswordChange}
+                      icon={<i className="fas fa-lock"></i>}
                     />
                   </div>
 
                   <div className="forgot-password-container">
-                    <label className="fg-label">Forgot Password</label>
+                    <NavLink className="fg-label" to={"/super-admin/forgot-password"}>
+                      Forgot Password
+                    </NavLink>
                   </div>
 
                   <div className="btn-container">

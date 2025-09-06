@@ -20,6 +20,8 @@ import { Routes, Route } from "react-router-dom";
 
 // Authentication
 import Signin from "../screens/auth/Signin/Signin.auth";
+import ForgotPassword from "../screens/auth/Forgot-password/ForgotPassword.auth";
+import ResetPassword from "../screens/auth/Reset-password/ResetPassword.auth";
 
 /**
  * Application routing configuration.
@@ -30,6 +32,8 @@ const AppNavigator = () => {
   return (
     <Routes>
       <Route path="/" element={<Signin />} />
+      <Route path="/super-admin/forgot-password" element={<ForgotPassword />} />
+      <Route path="/super-admin/reset-password" element={<ResetPassword />} />
     </Routes>
   );
 };

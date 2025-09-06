@@ -56,6 +56,7 @@ import "./InputField.utility.css";
  * />
  */
 const InputField = ({
+  icon,
   value,
   onChange,
   placeholder,
@@ -84,6 +85,7 @@ const InputField = ({
       >
         {dropdownOptions ? (
           <div className="input-container no-float">
+            {icon && <span className="input-icon">{icon}</span>}
             <select
               className="custom-input"
               value={selectedValue}
@@ -93,6 +95,7 @@ const InputField = ({
                 backgroundColor: bgColor || "var(--white)",
                 color: textColor || "var(--dark)",
                 width: fullWidth ? "100%" : "auto",
+                paddingLeft: icon ? "40px" : undefined,
                 ...inputStyle,
               }}
             >
@@ -108,6 +111,7 @@ const InputField = ({
           </div>
         ) : multiline ? (
           <div className="input-container no-float">
+            {icon && <span className="input-icon">{icon}</span>}
             <textarea
               value={value}
               onChange={onChange}
@@ -119,12 +123,14 @@ const InputField = ({
               style={{
                 backgroundColor: bgColor || "var(--white)",
                 color: textColor || "var(--dark)",
+                paddingLeft: icon ? "40px" : undefined,
                 ...inputStyle,
               }}
             />
           </div>
         ) : (
           <div className={`input-container ${value ? "has-value" : ""}`}>
+            {icon && <span className="input-icon">{icon}</span>}
             <input
               id={label}
               value={value}
@@ -137,6 +143,7 @@ const InputField = ({
               style={{
                 backgroundColor: bgColor || "var(--white)",
                 color: textColor || "var(--dark)",
+                paddingLeft: icon ? "40px" : undefined,
                 ...inputStyle,
               }}
             />

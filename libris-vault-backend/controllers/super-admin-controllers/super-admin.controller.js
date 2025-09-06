@@ -221,7 +221,7 @@ exports.loginSuperAdmin = async (req, res) => {
 
         res.json({
           success: true,
-          message: "Super Admin login successful",
+          message: "Super Admin login successfully!",
           superAdmin: {
             id: updatedUser.id,
             userName: updatedUser.userName,
