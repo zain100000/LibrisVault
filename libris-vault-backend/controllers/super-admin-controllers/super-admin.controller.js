@@ -18,6 +18,9 @@ const {
 const {
   generateSecureToken,
 } = require("../../helpers/token-helper/token.helper");
+const {
+  sendPasswordResetEmail,
+} = require("../../helpers/email-helper/email.helper");
 
 /**
  * @description Controller for SuperAdmin registration
@@ -270,39 +273,94 @@ exports.getSuperAdminById = async (req, res) => {
 };
 
 /**
- * @description Controller to reset SuperAdmin password
- * @route PATCH /api/super-admin/reset-superadmin-password
- * @access Private (SuperAdmin)
+ * @description Controller for forgot password - Send reset link to email
+ * @route POST /api/super-admin/forgot-password
+ * @access Public
  */
-exports.resetSuperAdminPassword = async (req, res) => {
+exports.forgotPassword = async (req, res) => {
   try {
-    const { email, currentPassword, newPassword } = req.body;
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const superAdmin = await SuperAdmin.findOne({ email: email.toLowerCase() });
+
+    if (!superAdmin) {
+      return res.status(200).json({
+        success: true,
+        message:
+          "If an account with that email exists, a password reset link has been sent",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = Date.now() + 3600000;
+
+    superAdmin.passwordResetToken = resetToken;
+    superAdmin.passwordResetExpires = resetTokenExpiry;
+    await superAdmin.save();
+
+    const emailSent = await sendPasswordResetEmail(email, resetToken);
+
+    if (!emailSent) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send password reset email",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Link sent successfully! Please check your email",
+    });
+  } catch (error) {
+    console.error("Error in forgot password:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+/**
+ * @description Controller to reset password with token
+ * @route POST /api/super-admin/reset-password/:token
+ * @access Public
+ */
+exports.resetPasswordWithToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password are required",
+      });
+    }
 
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
         success: false,
         message:
-          "New password must be at least 8 characters long and include uppercase, lowercase, number, and special character",
+          "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character",
       });
     }
 
-    let superAdmin = await SuperAdmin.findOne({ email });
+    const superAdmin = await SuperAdmin.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
     if (!superAdmin) {
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
-        message:
-          "If an account with that email exists, a password reset email has been sent",
-      });
-    }
-
-    const isCurrentPasswordValid = await bcrypt.compare(
-      currentPassword,
-      superAdmin.password
-    );
-    if (!isCurrentPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: "Current password is incorrect",
+        message: "Invalid or expired reset token",
       });
     }
 
@@ -320,19 +378,63 @@ exports.resetSuperAdminPassword = async (req, res) => {
     const hashedPassword = await hashPassword(newPassword);
 
     superAdmin.password = hashedPassword;
+    superAdmin.passwordResetToken = null;
+    superAdmin.passwordResetExpires = null;
     superAdmin.passwordChangedAt = new Date();
     superAdmin.sessionId = generateSecureToken();
+
     await superAdmin.save();
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: "Password Reset Successfully",
+      message: "Password reset successfully",
     });
-  } catch (err) {
-    console.error("Error:", err);
-    return res.status(500).json({
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({
       success: false,
-      message: "Error Resetting Password!",
+      message: "Server error",
+    });
+  }
+};
+
+/**
+ * @description Controller to verify reset token validity
+ * @route GET /api/super-admin/verify-reset-token/:token
+ * @access Public
+ */
+exports.verifyResetToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token is required",
+      });
+    }
+
+    const superAdmin = await Seller.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!superAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Valid reset token",
+    });
+  } catch (error) {
+    console.error("Error verifying reset token:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
     });
   }
 };

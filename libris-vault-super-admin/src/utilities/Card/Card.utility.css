@@ -1,0 +1,134 @@
+/**
+ * Card Stylesheet
+ *
+ * Provides styles for the Card component, including:
+ * - Coffee-themed gradient backgrounds
+ * - Hover scaling and shadow effects
+ * - Smooth animations for entrance and icon pulsing
+ */
+
+@import url("../../styles/global.styles.css");
+
+/* Card container wrapper */
+#card .card-container {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+}
+
+/* Card base styles */
+#card .custom-card {
+  width: 100%;
+  max-width: 300px;
+  height: 44vh;
+  border-radius: var(--card-radius, 16px);
+  overflow: hidden;
+  box-shadow: var(--box-shadow, 0 4px 12px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  color: var(--white);
+  background: linear-gradient(45deg, #4b2e2b, #7b3f00); /* Default - espresso */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.5s ease-in-out;
+  transform: scale(0.96);
+}
+
+#card .custom-card:hover {
+  transform: scale(1);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* Card header */
+#card .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+#card .card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--white);
+}
+
+#card .card-icon {
+  font-size: 1.6rem;
+  color: var(--white);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Stats section */
+#card .card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#card .stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#card .stat-label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--white);
+}
+
+#card .stat-number {
+  font-weight: bold;
+  font-size: 1rem;
+  color: var(--white);
+  transition: color 0.3s ease;
+}
+
+#card .stat-item:hover .stat-number {
+  color: var(--primary);
+}
+
+/* Coffee-themed variants (nth-child) */
+#card .card-container:nth-child(1) .custom-card {
+  background: linear-gradient(45deg, #4b2e2b, #7b3f00); /* Espresso */
+}
+
+#card .card-container:nth-child(2) .custom-card {
+  background: linear-gradient(45deg, #a1866f, #c3a18d); /* Cappuccino */
+}
+
+#card .card-container:nth-child(3) .custom-card {
+  background: linear-gradient(45deg, #362c2a, #b86b56); /* Mocha */
+}
+
+#card .card-container:nth-child(4) .custom-card {
+  background: linear-gradient(45deg, #d2b48c, #f5deb3); /* Latte */
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

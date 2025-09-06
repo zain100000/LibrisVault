@@ -1,0 +1,44 @@
+/**
+ * Dashboard Layout Styles
+ *
+ * This stylesheet defines the layout structure for the dashboard, 
+ * leveraging the global design tokens (colors, spacing, shadows, etc.) 
+ * from global.styles.css to maintain consistency across the app.
+ */
+
+@import url("../../styles/global.styles.css");
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--white);
+}
+
+#sidebar {
+  position: fixed;
+  top: var(--spacing-xl); /* instead of 64px */
+  left: 0;
+  height: calc(100vh - var(--spacing-xl)); /* instead of hardcoded 60px */
+  background-color: var(--white);
+  box-shadow: var(--shadow-md);
+  width: 250px;
+  z-index: 1000;
+  padding: var(--spacing-md);
+  border-right: 1px solid var(--gray);
+}
+
+.content {
+  flex-grow: 1;
+  margin-left: 250px; /* matches sidebar width */
+  padding: var(--spacing-lg);
+  padding-top: calc(
+    var(--spacing-xl) + var(--spacing-lg)
+  ); /* offset for top nav */
+  overflow: auto;
+  position: relative;
+  z-index: 1;
+  background-color: var(--gray);
+  border-radius: var(--radius-lg) 0 0 0;
+}

@@ -1,4 +1,4 @@
-# 📚 LibrisVault Backend
+## 📚 LibrisVault Backend
 
 A Node.js RESTful API for managing an online bookstore platform with multi-role access (Super Admin, Sellers, and Users). Built with scalability and security in mind to handle book inventory, orders, promotions, and user interactions.
 
@@ -29,25 +29,16 @@ A Node.js RESTful API for managing an online bookstore platform with multi-role 
 - Reviews & Ratings (rate books, write reviews)
 - Request Unavailable Books (notify sellers about desired books)
 
-🛠️ Tech Stack
+## 🛠️ Tech Stack
 
-## Node.js - Runtime environment
-
-## Express.js - Web framework
-
-## MongoDB - Database
-
-## JWT - Authentication
-
-## dotenv - Environment variables
-
-## Cloudinary - Image management
-
-## Nodemailer - Email notifications
-
-## Cron - Scheduled tasks
-
----
+- Node.js - Runtime environment
+- Express.js - Web framework
+- MongoDB - Database
+- JWT - Authentication
+- dotenv - Environment variables
+- Cloudinary - Image management
+- Nodemailer - Email notifications
+- Cron - Scheduled tasks
 
 ## 📁 Project Structure
 
@@ -113,17 +104,11 @@ libris-vault-backend/
 ├── app.js # Application entry point
 └── package.json # Dependencies and scripts
 
----
+## 📬 Contact
 
-📬 Contact
 For any questions, suggestions, or contributions:
 
-## Name: Muhammad Zain-Ul-Abideen
-
-## Email: muhammadzainulabideen292@gmail.com
-
-## GitHub: https://github.com/zain100000
-
-## LinkedIn: https://www.linkedin.com/in/muhammad-zain-ul-abideen-270581272/
-
----
+- Name: Muhammad Zain-Ul-Abideen
+- Email: muhammadzainulabideen292@gmail.com
+- GitHub: https://github.com/zain100000
+- LinkedIn: https://www.linkedin.com/in/muhammad-zain-ul-abideen-270581272/

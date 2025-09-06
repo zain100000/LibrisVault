@@ -35,12 +35,24 @@ router.get(
 );
 
 /**
- * @description Route to reset a Super Admin's password.
+ * @description Route to send an email for a password reset.
  */
-router.patch(
-  "/reset-super-admin-password",
-  authMiddleware,
-  superAdminController.resetSuperAdminPassword
+router.post("/forgot-password", superAdminController.forgotPassword);
+
+/**
+ * @description Route to reset a password using a token.
+ */
+router.post(
+  "/reset-password/:token",
+  superAdminController.resetPasswordWithToken
+);
+
+/**
+ * @description Route to verify a password reset token.
+ */
+router.post(
+  "/verify-reset-token/:token",
+  superAdminController.verifyResetToken
 );
 
 /**
