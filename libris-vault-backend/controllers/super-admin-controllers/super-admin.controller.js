@@ -415,7 +415,7 @@ exports.verifyResetToken = async (req, res) => {
       });
     }
 
-    const superAdmin = await Seller.findOne({
+    const superAdmin = await SuperAdmin.findOne({
       passwordResetToken: token,
       passwordResetExpires: { $gt: Date.now() },
     });
