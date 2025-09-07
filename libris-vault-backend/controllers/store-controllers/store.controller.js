@@ -164,12 +164,52 @@ exports.loginStore = async (req, res) => {
 };
 
 /**
+ * @description Controller to get all stores
+ * @route GET /api/store/get-all-stores
+ * @access Private (SuperAdmin/Sellers)
+ */
+exports.getAllStores = async (req, res) => {
+  try {
+    if (req.user.role !== "SUPERADMIN" && req.user.role !== "SELLER") {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized! Only Super Admins and Sellers can get stores.",
+      });
+    }
+
+    const stores = await Store.find().populate("seller");
+
+    if (!stores || stores.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No stores found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Stores fetched successfully",
+      stores,
+    });
+  } catch (error) {
+    console.error("❌ Error retrieving stores:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+/**
  * @description Controller to get store details
  * @route GET /api/store/get-store-by-id/:storeId
- * @access Private (Seller)
+ * @access Private (SuperAdmin/Sellers)
  */
 exports.getStoreById = async (req, res) => {
   try {
+    if (req.user.role !== "SUPERADMIN" && req.user.role !== "SELLER") {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized! Only Super Admins and Sellers can get stores.",
+      });
+    }
+
     const { storeId } = req.params;
 
     const store = await Store.findById(storeId).populate("seller");

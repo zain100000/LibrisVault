@@ -17,7 +17,9 @@ import { persistStore, persistReducer } from "redux-persist";
 import { combineReducers } from "redux";
 import authReducer from "../slices/auth.slice";
 import superAdminReducer from "../slices/super-admin.slice";
-import bookReducer from "../slices/inventory.slice";
+import inventoryReducer from "../slices/inventory.slice";
+import sellerReducer from "../slices/seller.slice";
+import storeReducer from "../slices/store.slice";
 
 /**
  * A wrapper around localStorage to provide async-like
@@ -59,7 +61,9 @@ const persistConfig = {
 const rootReducer = combineReducers({
   auth: authReducer,
   superAdmin: superAdminReducer,
-  books: bookReducer,
+  inventory: inventoryReducer,
+  sellers: sellerReducer,
+  store: storeReducer,
 });
 
 /**

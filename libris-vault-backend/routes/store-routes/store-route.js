@@ -23,6 +23,15 @@ router.post(
 router.post("/login-store", authLimiter, storeController.loginStore);
 
 /**
+ * @description Route to get store details.
+ */
+router.get(
+  "/get-all-stores",
+  authMiddleware,
+  storeController.getAllStores
+);
+
+/**
  * @description Route to get store details by ID.
  */
 router.get(

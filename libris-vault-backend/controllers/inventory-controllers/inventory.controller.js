@@ -19,6 +19,8 @@ exports.uploadInventory = async (req, res) => {
 
   try {
     if (!req.user || req.user.role !== "SELLER") {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(403).json({
         success: false,
         message: "Unauthorized! only seller can update inventory.",
@@ -39,22 +41,22 @@ exports.uploadInventory = async (req, res) => {
       pages,
     } = req.body;
 
-    if (!req.files?.itemCover) {
+    if (!req.files?.bookCover) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
         success: false,
-        message: "Inventory item cover image is required",
+        message: "Inventory book cover image is required",
       });
     }
 
-    const itemCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
-      req.files.itemCover[0],
-      "itemCover"
+    const bookCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
+      req.files.bookCover[0],
+      "bookCover"
     );
 
     const inventory = new Inventory({
-      bookCover: itemCoverUploadResult.url,
+      bookCover: bookCoverUploadResult.url,
       title,
       author,
       price,
@@ -271,12 +273,12 @@ exports.updateInventory = async (req, res) => {
       }
     }
 
-    if (req.files?.itemCover) {
-      const itemCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
-        req.files.itemCover[0],
-        "itemCover"
+    if (req.files?.bookCover) {
+      const bookCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
+        req.files.bookCover[0],
+        "bookCover"
       );
-      updates.bookCover = itemCoverUploadResult.url;
+      updates.bookCover = bookCoverUploadResult.url;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -575,7 +577,7 @@ exports.uploadInventoryByISBN = async (req, res) => {
       genres = itemData.subjects.slice(0, 3);
     }
 
-    if (!req.files || !req.files.itemCover) {
+    if (!req.files || !req.files.bookCover) {
       await session.abortTransaction();
       session.endSession();
       return res
@@ -583,10 +585,10 @@ exports.uploadInventoryByISBN = async (req, res) => {
         .json({ success: false, message: "Inventory cover image is required" });
     }
 
-    const itemCoverFile = req.files.itemCover[0];
+    const bookCoverFile = req.files.bookCover[0];
     const cloudinaryResult = await cloudinaryUpload.uploadToCloudinary(
-      itemCoverFile,
-      "itemCover"
+      bookCoverFile,
+      "bookCover"
     );
 
     const languageMap = {

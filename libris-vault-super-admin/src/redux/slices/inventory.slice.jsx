@@ -1,24 +1,24 @@
 /**
- * Book Slice (Super Admin)
+ * Inventory Slice (Super Admin)
  *
- * Manages book-related state and async actions in the Redux store.
+ * Manages inventory-related state and async actions in the Redux store.
  *
  * Super Admin Permissions:
- * - Fetch all books
- * - Fetch book by ID
- * - Delete a book
+ * - Fetch all inventories
+ * - Fetch inventory by ID
+ * - Delete a inventory
  *
  * Integrates with a backend API using Axios, with authentication
  * handled via Bearer token stored in localStorage.
  *
  * State Shape:
  * {
- *   books: Array<Object>,      // List of books
+ *   inventories: Array<Object>,      // List of inventories
  *   loading: boolean,          // Loading indicator for async actions
  *   error: string | null       // Error message from API calls
  * }
  *
- * @module bookSlice
+ * @module inventorySlice
  */
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
@@ -30,23 +30,23 @@ const { BACKEND_API_URL } = CONFIG;
 const getToken = () => localStorage.getItem("authToken");
 
 /**
- * Fetch all books.
+ * Fetch all inventory items.
  */
-export const getAllBooks = createAsyncThunk(
-  "books/getAllBooks",
+export const getAllInventory = createAsyncThunk(
+  "inventory/getAllInventory",
   async (_, { rejectWithValue }) => {
     const token = getToken();
     if (!token) return rejectWithValue("Admin is not authenticated.");
 
     try {
       const response = await axios.get(
-        `${BACKEND_API_URL}/inventory/book/get-all-books`,
+        `${BACKEND_API_URL}/inventory/get-all-inventory`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      return response.data.books;
+      return response.data.inventory;
     } catch (error) {
       return rejectWithValue(error.response?.data || "An error occurred.");
     }
@@ -54,23 +54,23 @@ export const getAllBooks = createAsyncThunk(
 );
 
 /**
- * Fetch a single book by ID.
+ * Fetch a single inventory item by ID.
  */
-export const getBookById = createAsyncThunk(
-  "books/getBookById",
-  async (bookId, { rejectWithValue }) => {
+export const getInventoryById = createAsyncThunk(
+  "inventory/getInventoryById",
+  async (inventoryId, { rejectWithValue }) => {
     const token = getToken();
     if (!token) return rejectWithValue("Admin is not authenticated.");
 
     try {
       const response = await axios.get(
-        `${BACKEND_API_URL}/inventory/get-book-by-id/${bookId}`,
+        `${BACKEND_API_URL}/inventory/get-inventory-by-id/${inventoryId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      return response.data.book;
+      return response.data.inventory;
     } catch (error) {
       return rejectWithValue(error.response?.data || "An error occurred.");
     }
@@ -78,82 +78,85 @@ export const getBookById = createAsyncThunk(
 );
 
 /**
- * Delete a book by ID.
+ * Delete an inventory item by ID.
  */
-export const deleteBook = createAsyncThunk(
-  "books/deleteBook",
-  async (bookId, { getState, rejectWithValue }) => {
+export const deleteInventory = createAsyncThunk(
+  "inventory/deleteInventory",
+  async (inventoryId, { getState, rejectWithValue }) => {
     const token = getToken();
     if (!token) return rejectWithValue("Admin is not authenticated.");
 
     try {
-      await axios.delete(`${BACKEND_API_URL}/inventory/delete-book/${bookId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `${BACKEND_API_URL}/inventory/delete-inventory/${inventoryId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      const { books } = getState().books;
-      return books.filter((book) => book._id !== bookId);
+      const { inventory } = getState().inventory;
+      return inventory.filter((item) => item._id !== inventoryId);
     } catch (error) {
       return rejectWithValue(error.response?.data || "An error occurred.");
     }
   }
 );
 
-const bookSlice = createSlice({
-  name: "books",
+const inventorySlice = createSlice({
+  name: "inventory",
   initialState: {
-    books: [],
+    inventory: [],
     loading: false,
     error: null,
   },
   reducers: {
-    setBooks: (state, action) => {
-      state.books = action.payload;
+    setInventory: (state, action) => {
+      state.inventory = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getAllBooks.pending, (state) => {
+      .addCase(getAllInventory.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getAllBooks.fulfilled, (state, action) => {
+      .addCase(getAllInventory.fulfilled, (state, action) => {
         state.loading = false;
-        state.books = action.payload;
+        state.inventory = action.payload;
       })
-      .addCase(getAllBooks.rejected, (state, action) => {
+      .addCase(getAllInventory.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      .addCase(getBookById.pending, (state) => {
+      .addCase(getInventoryById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getBookById.fulfilled, (state, action) => {
+      .addCase(getInventoryById.fulfilled, (state, action) => {
         state.loading = false;
-        state.books = action.payload;
+        state.inventory = action.payload;
       })
-      .addCase(getBookById.rejected, (state, action) => {
+      .addCase(getInventoryById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      .addCase(deleteBook.pending, (state) => {
+      .addCase(deleteInventory.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteBook.fulfilled, (state, action) => {
-        state.books = action.payload;
+      .addCase(deleteInventory.fulfilled, (state, action) => {
+        state.inventory = action.payload;
         state.loading = false;
       })
-      .addCase(deleteBook.rejected, (state, action) => {
+      .addCase(deleteInventory.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
   },
 });
 
-export const { setBooks } = bookSlice.actions;
+export const { setInventory } = inventorySlice.actions;
 
-export default bookSlice.reducer;
+export default inventorySlice.reducer;
