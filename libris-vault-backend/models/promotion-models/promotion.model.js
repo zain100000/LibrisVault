@@ -38,7 +38,7 @@ const PromotionSchema = new mongoose.Schema(
     applicableBooks: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Book",
+        ref: "Inventory",
       },
     ],
 

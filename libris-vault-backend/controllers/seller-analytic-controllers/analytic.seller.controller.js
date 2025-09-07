@@ -1,5 +1,5 @@
 const Order = require("../../models/order-models/order.model");
-const Book = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 
 /**
  * @desc Get sales report for seller
@@ -16,7 +16,7 @@ exports.getSalesReport = async (req, res) => {
     }
 
     const sellerId = req.user.id;
-    const { startDate, endDate, bookId, category } = req.query;
+    const { startDate, endDate, inventoryId, category } = req.query;
 
     const filter = { status: { $nin: ["CANCELLED", "REFUNDED"] } };
 
@@ -28,11 +28,11 @@ exports.getSalesReport = async (req, res) => {
       if (endDate) filter.createdAt.$lte = new Date(endDate);
     }
 
-    if (bookId) filter["items.book"] = bookId;
+    if (inventoryId) filter["items.inventory"] = inventoryId;
 
     if (category) {
-      const categoryBooks = await Book.find({ category }, "_id");
-      filter["items.book"] = { $in: categoryBooks.map((b) => b._id) };
+      const categoryInventory = await Inventory.find({ category }, "_id");
+      filter["items.inventory"] = { $in: categoryInventory.map((i) => i._id) };
     }
 
     const sales = await Order.aggregate([
@@ -66,11 +66,11 @@ exports.getSalesReport = async (req, res) => {
 };
 
 /**
- * @desc Get best-selling books with profit margins
- * @route GET /api/analytic/v1/seller/get-seller-best-selling-book
+ * @desc Get best-selling inventory items with profit margins
+ * @route GET /api/analytic/v1/seller/get-seller-best-selling-inventory
  * @access Private (Seller only)
  */
-exports.getBestSellingBooks = async (req, res) => {
+exports.getBestSellingInventory = async (req, res) => {
   try {
     if (req.user.role !== "SELLER") {
       return res.status(403).json({
@@ -89,23 +89,23 @@ exports.getBestSellingBooks = async (req, res) => {
       { $unwind: "$items" },
       {
         $lookup: {
-          from: "books",
-          localField: "items.book",
+          from: "inventories",
+          localField: "items.inventory",
           foreignField: "_id",
-          as: "book",
+          as: "inventory",
         },
       },
-      { $unwind: "$book" },
+      { $unwind: "$inventory" },
       {
         $group: {
-          _id: "$book._id",
-          title: { $first: "$book.title" },
+          _id: "$inventory._id",
+          title: { $first: "$inventory.title" },
           totalSold: { $sum: "$items.quantity" },
           revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
           profit: {
             $sum: {
               $multiply: [
-                { $subtract: ["$items.price", "$book.costPrice"] },
+                { $subtract: ["$items.price", "$inventory.costPrice"] },
                 "$items.quantity",
               ],
             },
@@ -118,8 +118,8 @@ exports.getBestSellingBooks = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Seller best selling books analytics fetched successfully!",
-      bestSellingBooks: bestSellers,
+      message: "Seller best selling inventory analytics fetched successfully!",
+      bestSellingInventory: bestSellers,
     });
   } catch (err) {
     console.error("Error fetching best sellers:", err.message);
@@ -142,14 +142,14 @@ exports.getCustomerReviews = async (req, res) => {
     }
     const sellerId = req.user.id;
 
-    const books = await Book.find({ seller: sellerId })
+    const inventory = await Inventory.find({ seller: sellerId })
       .populate("reviews.user", "userName email")
       .select("title reviews");
 
     return res.status(200).json({
       success: true,
       message: "Customer ratings and reviews fetched successfully!",
-      sellerBookReviews: books,
+      sellerInventoryReviews: inventory,
     });
   } catch (err) {
     console.error("Error fetching reviews:", err.message);

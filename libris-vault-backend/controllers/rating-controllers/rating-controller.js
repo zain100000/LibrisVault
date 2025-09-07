@@ -1,12 +1,12 @@
-const Inventory = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 const User = require("../../models/user-models/user.model");
 
 /**
- * @description Controller for a user to rate a book (1-5 stars).
+ * @description Controller for a user to rate an inventory item (1-5 stars).
  * @route POST /api/rating/add-rate
  * @access Public
  */
-exports.rateBook = async (req, res) => {
+exports.rateInventory = async (req, res) => {
   try {
     const { id, rating } = req.body;
     const userId = req.user.id;
@@ -14,7 +14,7 @@ exports.rateBook = async (req, res) => {
     if (!id || !rating) {
       return res.status(400).json({
         success: false,
-        message: "Book ID and rating are required",
+        message: "Inventory item ID and rating are required",
       });
     }
 
@@ -25,15 +25,15 @@ exports.rateBook = async (req, res) => {
       });
     }
 
-    const [book, user] = await Promise.all([
+    const [inventory, user] = await Promise.all([
       Inventory.findById(id),
       User.findById(userId),
     ]);
 
-    if (!book) {
+    if (!inventory) {
       return res.status(404).json({
         success: false,
-        message: "Book not found",
+        message: "Inventory item not found",
       });
     }
 
@@ -44,40 +44,40 @@ exports.rateBook = async (req, res) => {
       });
     }
 
-    const existingRatingIndex = book.ratings.findIndex(
+    const existingRatingIndex = inventory.ratings.findIndex(
       (r) => r.userId.toString() === userId
     );
 
     if (existingRatingIndex > -1) {
-      book.ratings[existingRatingIndex].rating = rating;
-      book.ratings[existingRatingIndex].createdAt = new Date();
+      inventory.ratings[existingRatingIndex].rating = rating;
+      inventory.ratings[existingRatingIndex].createdAt = new Date();
     } else {
-      book.ratings.push({
+      inventory.ratings.push({
         userId,
         rating,
         createdAt: new Date(),
       });
     }
 
-    book.updateAverageRating();
-    await book.save();
+    inventory.updateAverageRating();
+    await inventory.save();
 
     res.status(200).json({
       success: true,
       message:
         existingRatingIndex > -1
           ? "Rating updated successfully"
-          : "Book rated successfully",
+          : "Inventory item rated successfully",
       rating: {
-        id: book._id,
-        bookTitle: book.title,
+        id: inventory._id,
+        inventoryTitle: inventory.title,
         rating,
-        averageRating: book.averageRating,
-        totalRatings: book.totalRatings,
+        averageRating: inventory.averageRating,
+        totalRatings: inventory.totalRatings,
       },
     });
   } catch (err) {
-    console.error("Rate book error:", err);
+    console.error("Rate inventory item error:", err);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -86,30 +86,30 @@ exports.rateBook = async (req, res) => {
 };
 
 /**
- * @description Controller to get book ratings and reviews.
- * @route GET /api/rating/get-book-rating/:bookId
+ * @description Controller to get inventory item ratings and reviews.
+ * @route GET /api/rating/get-inventory-rating/:inventoryId
  * @access Public
  */
-exports.getBookRatings = async (req, res) => {
+exports.getInventoryRatings = async (req, res) => {
   try {
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
     const { page = 1, limit = 10, sortBy = "newest" } = req.query;
 
-    const book = await Inventory.findById(bookId)
+    const inventory = await Inventory.findById(inventoryId)
       .populate({
         path: "ratings.userId",
         select: "userName profilePicture",
       })
       .select("ratings averageRating totalRatings title");
 
-    if (!book) {
+    if (!inventory) {
       return res.status(404).json({
         success: false,
-        message: "Book not found",
+        message: "Inventory item not found",
       });
     }
 
-    let sortedRatings = [...book.ratings];
+    let sortedRatings = [...inventory.ratings];
     switch (sortBy) {
       case "newest":
         sortedRatings.sort((a, b) => b.createdAt - a.createdAt);
@@ -130,27 +130,27 @@ exports.getBookRatings = async (req, res) => {
     const paginatedRatings = sortedRatings.slice(startIndex, endIndex);
 
     const ratingDistribution = {
-      5: book.ratings.filter((r) => r.rating === 5).length,
-      4: book.ratings.filter((r) => r.rating === 4).length,
-      3: book.ratings.filter((r) => r.rating === 3).length,
-      2: book.ratings.filter((r) => r.rating === 2).length,
-      1: book.ratings.filter((r) => r.rating === 1).length,
+      5: inventory.ratings.filter((r) => r.rating === 5).length,
+      4: inventory.ratings.filter((r) => r.rating === 4).length,
+      3: inventory.ratings.filter((r) => r.rating === 3).length,
+      2: inventory.ratings.filter((r) => r.rating === 2).length,
+      1: inventory.ratings.filter((r) => r.rating === 1).length,
     };
 
     res.status(200).json({
       success: true,
-      bookTitle: book.title,
-      averageRating: book.averageRating,
-      totalRatings: book.totalRatings,
+      inventoryTitle: inventory.title,
+      averageRating: inventory.averageRating,
+      totalRatings: inventory.totalRatings,
       ratingDistribution,
       ratings: paginatedRatings,
       currentPage: parseInt(page),
-      totalPages: Math.ceil(book.ratings.length / limit),
-      hasNext: endIndex < book.ratings.length,
+      totalPages: Math.ceil(inventory.ratings.length / limit),
+      hasNext: endIndex < inventory.ratings.length,
       hasPrev: startIndex > 0,
     });
   } catch (err) {
-    console.error("Get book ratings error:", err);
+    console.error("Get inventory ratings error:", err);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -159,24 +159,26 @@ exports.getBookRatings = async (req, res) => {
 };
 
 /**
- * @description Controller to get a user's rating for a specific book.
- * @route GET /api/rating/user-rating/:bookId
+ * @description Controller to get a user's rating for a specific inventory item.
+ * @route GET /api/rating/user-rating/:inventoryId
  * @access Public
  */
 exports.getUserRating = async (req, res) => {
   try {
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
     const userId = req.user.id;
 
-    const book = await Inventory.findById(bookId);
-    if (!book) {
+    const inventory = await Inventory.findById(inventoryId);
+    if (!inventory) {
       return res.status(404).json({
         success: false,
-        message: "Book not found",
+        message: "Inventory item not found",
       });
     }
 
-    const userRating = book.ratings.find((r) => r.userId.toString() === userId);
+    const userRating = inventory.ratings.find(
+      (r) => r.userId.toString() === userId
+    );
 
     res.status(200).json({
       success: true,
@@ -193,24 +195,24 @@ exports.getUserRating = async (req, res) => {
 };
 
 /**
- * @description Controller to delete a user's rating for a specific book.
- * @route DELETE /api/rating/delete-rating/:bookId
+ * @description Controller to delete a user's rating for a specific inventory item.
+ * @route DELETE /api/rating/delete-rating/:inventoryId
  * @access Public
  */
 exports.deleteRating = async (req, res) => {
   try {
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
     const userId = req.user.id;
 
-    const book = await Inventory.findById(bookId);
-    if (!book) {
+    const inventory = await Inventory.findById(inventoryId);
+    if (!inventory) {
       return res.status(404).json({
         success: false,
-        message: "Book not found",
+        message: "Inventory item not found",
       });
     }
 
-    const ratingIndex = book.ratings.findIndex(
+    const ratingIndex = inventory.ratings.findIndex(
       (r) => r.userId.toString() === userId
     );
     if (ratingIndex === -1) {
@@ -220,15 +222,15 @@ exports.deleteRating = async (req, res) => {
       });
     }
 
-    book.ratings.splice(ratingIndex, 1);
-    book.updateAverageRating();
-    await book.save();
+    inventory.ratings.splice(ratingIndex, 1);
+    inventory.updateAverageRating();
+    await inventory.save();
 
     res.status(200).json({
       success: true,
       message: "Rating deleted successfully",
-      averageRating: book.averageRating,
-      totalRatings: book.totalRatings,
+      averageRating: inventory.averageRating,
+      totalRatings: inventory.totalRatings,
     });
   } catch (err) {
     console.error("Delete rating error:", err);
@@ -240,15 +242,15 @@ exports.deleteRating = async (req, res) => {
 };
 
 /**
- * @description Controller to get a list of top-rated books.
+ * @description Controller to get a list of top-rated inventory items.
  * @route GET /api/rating/top-rated
  * @access Public
  */
-exports.getTopRatedBooks = async (req, res) => {
+exports.getTopRatedInventory = async (req, res) => {
   try {
     const { limit = 10, minRatings = 5 } = req.query;
 
-    const topRatedBooks = await Inventory.find({
+    const topRatedInventory = await Inventory.find({
       totalRatings: { $gte: parseInt(minRatings) },
       averageRating: { $gt: 0 },
     })
@@ -258,11 +260,11 @@ exports.getTopRatedBooks = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      books: topRatedBooks,
-      count: topRatedBooks.length,
+      inventory: topRatedInventory,
+      count: topRatedInventory.length,
     });
   } catch (err) {
-    console.error("Get top rated books error:", err);
+    console.error("Get top rated inventory error:", err);
     res.status(500).json({
       success: false,
       message: "Server Error",

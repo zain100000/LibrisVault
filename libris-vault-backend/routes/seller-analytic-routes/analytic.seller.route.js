@@ -18,7 +18,7 @@ router.get(
 router.get(
   "/seller/get-seller-best-selling-book",
   authMiddleware,
-  sellerAnalyticController.getBestSellingBooks
+  sellerAnalyticController.getBestSellingInventory
 );
 
 /**

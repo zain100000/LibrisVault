@@ -1,7 +1,7 @@
 const cron = require("node-cron");
 const Promotion = require("../../models/promotion-models/promotion.model");
 const Seller = require("../../models/seller-models/seller-model");
-const Book = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 
 exports.getActiveSystemWidePromotion = async () => {
   const now = new Date();
@@ -32,11 +32,11 @@ exports.cleanupPromotions = async () => {
       if (promo.scope === "SYSTEM_WIDE") {
         console.log(`⏰ Expiring system-wide promotion: ${promo.title}`);
 
-        const books = await Book.find({});
-        for (let book of books) {
-          book.discountedPrice = undefined;
-          book.activePromotion = undefined;
-          await book.save();
+        const inventoryItems = await Inventory.find({});
+        for (let item of inventoryItems) {
+          item.discountedPrice = undefined;
+          item.activePromotion = undefined;
+          await item.save();
         }
       } else if (promo.scope === "SELLER_SPECIFIC") {
         console.log(`⏰ Expiring seller promotion: ${promo.title}`);
@@ -45,11 +45,13 @@ exports.cleanupPromotions = async () => {
           $pull: { promotions: promo._id },
         });
 
-        const books = await Book.find({ _id: { $in: promo.applicableBooks } });
-        for (let book of books) {
-          book.discountedPrice = undefined;
-          book.activePromotion = undefined;
-          await book.save();
+        const inventoryItems = await Inventory.find({
+          _id: { $in: promo.applicableItems },
+        });
+        for (let item of inventoryItems) {
+          item.discountedPrice = undefined;
+          item.activePromotion = undefined;
+          await item.save();
         }
       }
 

@@ -1,8 +1,8 @@
-const Inventory = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 const User = require("../../models/user-models/user.model");
 
 /**
- * @description Controller for adding reviews on the book
+ * @description Controller for adding reviews on an inventory item
  * @route POST /api/review/add-review
  * @access Public
  */
@@ -12,9 +12,10 @@ exports.addReview = async (req, res) => {
     const userId = req.user.id;
 
     if (!id || !review) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Book ID and review are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Inventory item ID and review are required",
+      });
     }
 
     if (review.length > 500) {
@@ -24,37 +25,39 @@ exports.addReview = async (req, res) => {
       });
     }
 
-    const [book, user] = await Promise.all([
+    const [inventory, user] = await Promise.all([
       Inventory.findById(id),
       User.findById(userId),
     ]);
 
-    if (!book)
+    if (!inventory)
       return res
         .status(404)
-        .json({ success: false, message: "Book not found" });
+        .json({ success: false, message: "Inventory item not found" });
     if (!user)
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
 
-    const existing = book.reviews.find((r) => r.userId.toString() === userId);
+    const existing = inventory.reviews.find(
+      (r) => r.userId.toString() === userId
+    );
 
     if (existing) {
       existing.review = review;
       existing.createdAt = new Date();
     } else {
-      book.reviews.push({ userId, review, createdAt: new Date() });
+      inventory.reviews.push({ userId, review, createdAt: new Date() });
     }
 
-    await book.save();
+    await inventory.save();
 
     res.status(200).json({
       success: true,
       message: existing
         ? "Review updated successfully"
         : "Review added successfully",
-      review: { userId, id: book._id, review },
+      review: { userId, id: inventory._id, review },
     });
   } catch (err) {
     res
@@ -64,26 +67,28 @@ exports.addReview = async (req, res) => {
 };
 
 /**
- * @description Controller for getting reviews of the book
- * @route GET /api/review/get-book-review/:bookId
+ * @description Controller for getting reviews of an inventory item
+ * @route GET /api/review/get-inventory-review/:inventoryId
  * @access Public
  */
 exports.getReviews = async (req, res) => {
   try {
-    const { bookId } = req.params;
-    const book = await Inventory.findById(bookId).populate(
+    const { inventoryId } = req.params;
+    const inventory = await Inventory.findById(inventoryId).populate(
       "reviews.userId",
       "userName profilePicture"
     );
 
-    if (!book)
+    if (!inventory)
       return res
         .status(404)
-        .json({ success: false, message: "Book not found" });
+        .json({ success: false, message: "Inventory item not found" });
 
-    res
-      .status(200)
-      .json({ success: true, bookTitle: book.title, reviews: book.reviews });
+    res.status(200).json({
+      success: true,
+      inventoryTitle: inventory.title,
+      reviews: inventory.reviews,
+    });
   } catch (err) {
     res
       .status(500)
@@ -92,13 +97,13 @@ exports.getReviews = async (req, res) => {
 };
 
 /**
- * @description Controller for updating review of the book
- * @route PATCH /api/review/update-review/:bookId
+ * @description Controller for updating review of an inventory item
+ * @route PATCH /api/review/update-review/:inventoryId
  * @access Public
  */
 exports.updateReview = async (req, res) => {
   try {
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
     const { review } = req.body;
     const userId = req.user.id;
 
@@ -114,28 +119,30 @@ exports.updateReview = async (req, res) => {
       });
     }
 
-    const book = await Inventory.findById(bookId);
-    if (!book) {
+    const inventory = await Inventory.findById(inventoryId);
+    if (!inventory) {
       return res
         .status(404)
-        .json({ success: false, message: "Book not found" });
+        .json({ success: false, message: "Inventory item not found" });
     }
 
-    const idx = book.reviews.findIndex((r) => r.userId.toString() === userId);
+    const idx = inventory.reviews.findIndex(
+      (r) => r.userId.toString() === userId
+    );
     if (idx === -1) {
       return res
         .status(404)
         .json({ success: false, message: "Review not found" });
     }
 
-    book.reviews[idx].review = review;
-    book.reviews[idx].createdAt = new Date();
-    await book.save();
+    inventory.reviews[idx].review = review;
+    inventory.reviews[idx].createdAt = new Date();
+    await inventory.save();
 
     res.status(200).json({
       success: true,
       message: "Review updated successfully",
-      review: book.reviews[idx],
+      review: inventory.reviews[idx],
     });
   } catch (err) {
     res
@@ -145,22 +152,22 @@ exports.updateReview = async (req, res) => {
 };
 
 /**
- * @description Controller for deleting reviews on the book
- * @route DELETE /api/review/delete-review/:bookId
+ * @description Controller for deleting reviews on an inventory item
+ * @route DELETE /api/review/delete-review/:inventoryId
  * @access Public
  */
 exports.deleteReview = async (req, res) => {
   try {
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
     const userId = req.user.id;
 
-    const book = await Inventory.findById(bookId);
-    if (!book)
+    const inventory = await Inventory.findById(inventoryId);
+    if (!inventory)
       return res
         .status(404)
-        .json({ success: false, message: "Book not found" });
+        .json({ success: false, message: "Inventory item not found" });
 
-    const reviewIndex = book.reviews.findIndex(
+    const reviewIndex = inventory.reviews.findIndex(
       (r) => r.userId.toString() === userId
     );
     if (reviewIndex === -1) {
@@ -169,8 +176,8 @@ exports.deleteReview = async (req, res) => {
         .json({ success: false, message: "Review not found" });
     }
 
-    book.reviews.splice(reviewIndex, 1);
-    await book.save();
+    inventory.reviews.splice(reviewIndex, 1);
+    await inventory.save();
 
     res
       .status(200)

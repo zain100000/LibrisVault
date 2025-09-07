@@ -1,5 +1,5 @@
 const Order = require("../../models/order-models/order.model");
-const Book = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 const User = require("../../models/user-models/user.model");
 const Store = require("../../models/store-models/store.model");
 const Seller = require("../../models/seller-models/seller-model");
@@ -13,22 +13,22 @@ const {
 
 /**
  * @description Helper function to handle a "Buy Now" order.
- * @param {string} bookId - The ID of the book to be purchased.
- * @param {number} quantity - The quantity of the book.
+ * @param {string} inventoryId - The ID of the inventory item to be purchased.
+ * @param {number} quantity - The quantity of the item.
  * @returns {Promise<Object>} Object with the items and total amount.
  */
-const handleBuyNowOrder = async (bookId, quantity) => {
-  const book = await Book.findById(bookId);
-  if (!book) throw new Error("Book not found");
+const handleBuyNowOrder = async (inventoryId, quantity) => {
+  const inventory = await Inventory.findById(inventoryId);
+  if (!inventory) throw new Error("Inventory item not found");
 
   const finalPrice =
-    book.discountPrice && book.discountPrice < book.price
-      ? book.discountPrice
-      : book.price;
+    inventory.discountPrice && inventory.discountPrice < inventory.price
+      ? inventory.discountPrice
+      : inventory.price;
 
   const items = [
     {
-      book: book._id,
+      inventory: inventory._id,
       quantity,
       price: finalPrice,
     },
@@ -50,14 +50,14 @@ const handleCartOrder = async (userId) => {
   }
 
   const items = user.cart.map((item) => {
-    const book = item.productId;
+    const inventory = item.productId;
     const finalPrice =
-      book.discountPrice && book.discountPrice < book.price
-        ? book.discountPrice
-        : book.price;
+      inventory.discountPrice && inventory.discountPrice < inventory.price
+        ? inventory.discountPrice
+        : inventory.price;
 
     return {
-      book: book._id,
+      inventory: inventory._id,
       quantity: item.quantity,
       price: finalPrice,
     };
@@ -81,15 +81,21 @@ const handleCartOrder = async (userId) => {
  */
 exports.placeOrder = async (req, res) => {
   try {
-    const { type, storeId, bookId, quantity, paymentMethod, shippingAddress } =
-      req.body;
+    const {
+      type,
+      storeId,
+      inventoryId,
+      quantity,
+      paymentMethod,
+      shippingAddress,
+    } = req.body;
     const userId = req.user.id;
 
     let items = [];
     let totalAmount = 0;
 
     if (type === "BUY_NOW") {
-      ({ items, totalAmount } = await handleBuyNowOrder(bookId, quantity));
+      ({ items, totalAmount } = await handleBuyNowOrder(inventoryId, quantity));
     } else if (type === "CART") {
       ({ items, totalAmount } = await handleCartOrder(userId));
     } else {
@@ -136,14 +142,14 @@ exports.placeOrder = async (req, res) => {
     }
 
     const populatedOrder = await Order.findById(order._id)
-      .populate({ path: "items.book", select: "title price" })
+      .populate({ path: "items.inventory", select: "title price" })
       .populate("user", "userName email");
 
     const orderForEmail = {
       ...populatedOrder._doc,
       items: populatedOrder.items.map((item) => ({
         ...item._doc,
-        bookTitle: item.book.title,
+        inventoryTitle: item.inventory.title,
       })),
     };
 
@@ -182,7 +188,10 @@ exports.getAllOrders = async (req, res) => {
   try {
     const userId = req.user.id;
     const orders = await Order.find({ user: userId })
-      .populate({ path: "items.book", select: "title price discountPrice" })
+      .populate({
+        path: "items.inventory",
+        select: "title price discountPrice",
+      })
       .populate({ path: "store", select: "storeName storeLogo" })
       .populate({ path: "user", select: "userName email" })
       .sort({ createdAt: -1 });
@@ -211,7 +220,7 @@ exports.cancelOrder = async (req, res) => {
     const { orderId } = req.params;
 
     const order = await Order.findOne({ _id: orderId, user: userId }).populate([
-      { path: "items.book", select: "title price" },
+      { path: "items.inventory", select: "title price" },
       { path: "user", select: "userName email" },
       { path: "store", populate: { path: "seller", select: "email" } },
     ]);
@@ -253,7 +262,7 @@ exports.cancelOrder = async (req, res) => {
       ...order._doc,
       items: order.items.map((item) => ({
         ...item._doc,
-        bookTitle: item.book.title,
+        inventoryTitle: item.inventory.title,
       })),
     };
 

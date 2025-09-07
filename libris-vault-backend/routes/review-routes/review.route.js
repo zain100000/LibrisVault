@@ -4,14 +4,14 @@ const { authMiddleware } = require("../../middlewares/auth.middleware");
 const reviewController = require("../../controllers/review-controllers/review.controller");
 
 /**
- * @description Route to add a new review for a book.
+ * @description Route to add a new review for a product.
  */
 router.post("/add-review", authMiddleware, reviewController.addReview);
 
 /**
- * @description Route to get all reviews for a specific book.
+ * @description Route to get all reviews for a specific product.
  */
-router.get("/get-book-review/:bookId", reviewController.getReviews);
+router.get("/get-reviews/:inventoryId", reviewController.getReviews);
 
 /**
  * @description Route to update an existing review.

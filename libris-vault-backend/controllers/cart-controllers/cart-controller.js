@@ -1,5 +1,5 @@
 const User = require("../../models/user-models/user.model");
-const Inventory = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 const {
   getActiveSystemWidePromotion,
   getActiveSellerPromotion,
@@ -23,9 +23,9 @@ const calculateDiscountedPrice = (
   const sellerPromo = sellerPromotions.find(
     (promo) =>
       promo.sellerId.toString() === product.seller.toString() &&
-      (!promo.applicableBooks ||
-        promo.applicableBooks.length === 0 ||
-        promo.applicableBooks.includes(product._id.toString()))
+      (!promo.applicableItems ||
+        promo.applicableItems.length === 0 ||
+        promo.applicableItems.includes(product._id.toString()))
   );
 
   if (sellerPromo) {
@@ -132,7 +132,7 @@ exports.addToCart = async (req, res) => {
 
     const updatedUser = await User.findById(userId).populate({
       path: "cart.productId",
-      select: "title author price bookCover stock discountedPrice seller",
+      select: "title author price coverImage stock discountedPrice seller",
     });
 
     const { totalPrice, totalItems, totalDiscount, originalTotal } =
@@ -225,7 +225,7 @@ exports.removeFromCart = async (req, res) => {
 
     const updatedUser = await User.findById(userId).populate({
       path: "cart.productId",
-      select: "title author price bookCover stock discountedPrice seller",
+      select: "title author price coverImage stock discountedPrice seller",
     });
 
     const { totalPrice, totalItems, totalDiscount, originalTotal } =
@@ -299,7 +299,7 @@ exports.getCart = async (req, res) => {
 
     const user = await User.findById(userId).populate({
       path: "cart.productId",
-      select: "title author price bookCover stock discountedPrice seller",
+      select: "title author price coverImage stock discountedPrice seller",
     });
 
     if (!user) {

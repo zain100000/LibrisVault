@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 /**
  * @schema RatingSchema
- * @description Schema representing a user rating for a book.
+ * @description Schema representing a user rating for an inventory item.
  */
 const ratingSchema = new mongoose.Schema({
   userId: {
@@ -26,7 +26,7 @@ const ratingSchema = new mongoose.Schema({
 
 /**
  * @schema ReviewSchema
- * @description Schema representing a user review for a book.
+ * @description Schema representing a user review for an inventory item.
  */
 const reviewSchema = new mongoose.Schema({
   userId: {
@@ -48,10 +48,10 @@ const reviewSchema = new mongoose.Schema({
 });
 
 /**
- * @schema BookSchema
- * @description Schema representing book details, including metadata, seller information, ratings, and reviews.
+ * @schema InventorySchema
+ * @description Schema representing inventory details, including metadata, seller information, ratings, and reviews.
  */
-const BookSchema = new mongoose.Schema(
+const InventorySchema = new mongoose.Schema(
   {
     bookCover: {
       type: String,
@@ -152,9 +152,9 @@ const BookSchema = new mongoose.Schema(
 
 /**
  * @method updateAverageRating
- * @description Calculates and updates the book’s average rating and total rating count.
+ * @description Calculates and updates the inventory item’s average rating and total rating count.
  */
-BookSchema.methods.updateAverageRating = function () {
+InventorySchema.methods.updateAverageRating = function () {
   if (this.ratings.length === 0) {
     this.averageRating = 0;
     this.totalRatings = 0;
@@ -166,4 +166,4 @@ BookSchema.methods.updateAverageRating = function () {
   this.totalRatings = this.ratings.length;
 };
 
-module.exports = mongoose.model("Inventory", BookSchema);
+module.exports = mongoose.model("Inventory", InventorySchema);

@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const SuperAdmin = require("../../models/super-admin-models/super-admin.model");
 const Seller = require("../../models/seller-models/seller-model");
 const Store = require("../../models/store-models/store.model");
-const Book = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 const Promotion = require("../../models/promotion-models/promotion.model");
 const Order = require("../../models/order-models/order.model");
 const {
@@ -519,7 +519,7 @@ exports.approveSellerAccountDeletion = async (req, res) => {
     }
 
     if (seller.inventory && seller.inventory.length > 0) {
-      await Book.deleteMany({ _id: { $in: seller.inventory } }).session(
+      await Inventory.deleteMany({ _id: { $in: seller.inventory } }).session(
         session
       );
     }

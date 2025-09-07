@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const axios = require("axios");
-const Book = require("../../models/book-models/book.model");
+const Inventory = require("../../models/inventory-models/inventory.model");
 const Seller = require("../../models/seller-models/seller-model");
 const cloudinaryUpload = require("../../utilities/cloudinary/cloudinary.utility");
 const {
@@ -8,14 +8,12 @@ const {
   getActiveSellerPromotion,
 } = require("../../utilities/promotion/promotion.utility");
 
-// Seller-Specific Actions
-
 /**
- * @description Controller to add a new book
- * @route POST /api/inventory/book/upload-book
+ * @description Controller to add a new inventory item
+ * @route POST /api/inventory/upload-inventory
  * @access Private (Seller)
  */
-exports.uploadBook = async (req, res) => {
+exports.uploadInventory = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -23,7 +21,7 @@ exports.uploadBook = async (req, res) => {
     if (!req.user || req.user.role !== "SELLER") {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized! only seller can update books.",
+        message: "Unauthorized! only seller can update inventory.",
       });
     }
 
@@ -41,22 +39,22 @@ exports.uploadBook = async (req, res) => {
       pages,
     } = req.body;
 
-    if (!req.files?.bookCover) {
+    if (!req.files?.itemCover) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
         success: false,
-        message: "Book cover image is required",
+        message: "Inventory item cover image is required",
       });
     }
 
-    const bookCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
-      req.files.bookCover[0],
-      "bookCover"
+    const itemCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
+      req.files.itemCover[0],
+      "itemCover"
     );
 
-    const book = new Book({
-      bookCover: bookCoverUploadResult.url,
+    const inventory = new Inventory({
+      bookCover: itemCoverUploadResult.url,
       title,
       author,
       price,
@@ -71,37 +69,39 @@ exports.uploadBook = async (req, res) => {
       seller: req.user.id,
     });
 
-    await book.save({ session });
+    await inventory.save({ session });
 
     await Seller.findByIdAndUpdate(
       req.user.id,
-      { $push: { inventory: book._id } },
+      { $push: { inventory: inventory._id } },
       { session, new: true }
     );
 
     await session.commitTransaction();
     session.endSession();
 
-    if (book.stock === 0) {
-      console.error(`🚨 Book "${book.title}" is OUT OF STOCK!`);
-    } else if (book.stock <= (book.lowStockThreshold || 5)) {
-      console.error(`⚠️ Book "${book.title}" is LOW ON STOCK: ${book.stock}`);
+    if (inventory.stock === 0) {
+      console.error(`🚨 Inventory "${inventory.title}" is OUT OF STOCK!`);
+    } else if (inventory.stock <= (inventory.lowStockThreshold || 5)) {
+      console.error(
+        `⚠️ Inventory "${inventory.title}" is LOW ON STOCK: ${inventory.stock}`
+      );
     }
 
     res.status(201).json({
       success: true,
-      message: "Book added successfully",
-      book,
+      message: "Item added successfully",
+      inventory,
     });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.error("❌ Error adding book:", error);
+    console.error("❌ Error adding inventory:", error);
 
     if (error.code === 11000 && error.keyPattern?.isbn) {
       return res.status(409).json({
         success: false,
-        message: "Book with this ISBN already exists",
+        message: "Inventory with this ISBN already exists",
       });
     }
 
@@ -113,13 +113,13 @@ exports.uploadBook = async (req, res) => {
 };
 
 /**
- * @description Controller to get all books
- * @route GET api/inventory/book/get-all-books
+ * @description Controller to get all inventory
+ * @route GET api/inventory/get-all-inventory
  * @access Public
  */
-exports.getAllBooks = async (req, res) => {
+exports.getAllInventory = async (req, res) => {
   try {
-    let books = await Book.find().populate("seller");
+    let inventory = await Inventory.find().populate("seller");
 
     const activeSystemPromo = await getActiveSystemWidePromotion();
     const activeSellerPromos = await getActiveSellerPromotion();
@@ -127,120 +127,120 @@ exports.getAllBooks = async (req, res) => {
     if (activeSystemPromo) {
       const discount = activeSystemPromo.discountPercentage;
 
-      books = await Promise.all(
-        books.map(async (book) => {
+      inventory = await Promise.all(
+        inventory.map(async (item) => {
           const discountedPrice = (
-            book.price -
-            (book.price * discount) / 100
+            item.price -
+            (item.price * discount) / 100
           ).toFixed(2);
 
-          book.discountedPrice = parseFloat(discountedPrice);
-          book.activePromotion = activeSystemPromo.title;
-          await book.save();
+          item.discountedPrice = parseFloat(discountedPrice);
+          item.activePromotion = activeSystemPromo.title;
+          await item.save();
 
-          return book;
+          return item;
         })
       );
     } else if (activeSellerPromos && activeSellerPromos.length > 0) {
-      books = await Promise.all(
-        books.map(async (book) => {
+      inventory = await Promise.all(
+        inventory.map(async (item) => {
           const promo = activeSellerPromos.find(
             (p) =>
-              String(p.sellerId) === String(book.seller._id) &&
-              p.applicableBooks.includes(book._id)
+              String(p.sellerId) === String(item.seller._id) &&
+              p.applicableBooks.includes(item._id)
           );
 
           if (promo) {
             const discountedPrice = (
-              book.price -
-              (book.price * promo.discountPercentage) / 100
+              item.price -
+              (item.price * promo.discountPercentage) / 100
             ).toFixed(2);
 
-            book.discountedPrice = parseFloat(discountedPrice);
-            book.activePromotion = promo.title;
+            item.discountedPrice = parseFloat(discountedPrice);
+            item.activePromotion = promo.title;
           } else {
-            book.discountedPrice = null;
-            book.activePromotion = null;
+            item.discountedPrice = null;
+            item.activePromotion = null;
           }
 
-          await book.save();
-          return book;
+          await item.save();
+          return item;
         })
       );
     } else {
-      books = await Promise.all(
-        books.map(async (book) => {
-          book.discountedPrice = null;
-          book.activePromotion = null;
-          await book.save();
-          return book;
+      inventory = await Promise.all(
+        inventory.map(async (item) => {
+          item.discountedPrice = null;
+          item.activePromotion = null;
+          await item.save();
+          return item;
         })
       );
     }
 
     res.status(200).json({
       success: true,
-      message: "Books fetched successfully",
-      books,
+      message: "Inventory fetched successfully",
+      inventory,
     });
   } catch (error) {
-    console.error("❌ Error fetching books with promo:", error);
+    console.error("❌ Error fetching inventory with promo:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
 /**
- * @description Controller to get a book by ID
- * @route GET api/inventory/book/get-book-by-id/:bookId
+ * @description Controller to get a single inventory item by ID
+ * @route GET api/inventory/get-inventory-by-id/:inventoryId
  * @access Public
  */
-exports.getBookById = async (req, res) => {
+exports.getInventoryById = async (req, res) => {
   try {
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
 
-    const books = await Book.findById(bookId).select("-title");
-    if (!books) {
+    const inventory = await Inventory.findById(inventoryId).select("-title");
+    if (!inventory) {
       return res.status(404).json({
         success: false,
-        message: "Book Not Found!",
+        message: "Inventory Not Found!",
       });
     }
 
     res.json({
       success: true,
-      message: "Book Fetched Successfully",
-      book: books,
+      message: "Inventory Fetched Successfully",
+      inventory,
     });
   } catch (err) {
-    console.error("❌ Error Getting Book:", err);
+    console.error("❌ Error Getting Inventory:", err);
     return res.status(500).json({
       success: false,
-      message: "Error Getting Book!",
+      message: "Error Getting Inventory!",
     });
   }
 };
 
 /**
- * @description Controller to update a book by ID
- * @route PATCH api/inventory/book/update-book/:bookId
+ * @description Controller to update an inventory item by ID
+ * @route PATCH api/inventory/update-inventory/:inventoryId
  * @access Private (Seller)
  */
-exports.updateBook = async (req, res) => {
+exports.updateInventory = async (req, res) => {
   try {
     if (!req.user || req.user.role !== "SELLER") {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized! Only Seller can update books.",
+        message: "Unauthorized! Only Seller can update inventory.",
       });
     }
 
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
 
-    const book = await Book.findById(bookId);
-    if (!book) {
+    const inventory = await Inventory.findById(inventoryId);
+    if (!inventory) {
       return res.status(404).json({
         success: false,
-        message: "Book not found!",
+        message: "Inventory not found!",
       });
     }
 
@@ -271,12 +271,12 @@ exports.updateBook = async (req, res) => {
       }
     }
 
-    if (req.files?.bookCover) {
-      const bookCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
-        req.files.bookCover[0],
-        "bookCover"
+    if (req.files?.itemCover) {
+      const itemCoverUploadResult = await cloudinaryUpload.uploadToCloudinary(
+        req.files.itemCover[0],
+        "itemCover"
       );
-      updates.bookCover = bookCoverUploadResult.url;
+      updates.bookCover = itemCoverUploadResult.url;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -286,35 +286,43 @@ exports.updateBook = async (req, res) => {
       });
     }
 
-    const updatedBook = await Book.findByIdAndUpdate(bookId, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedInventory = await Inventory.findByIdAndUpdate(
+      inventoryId,
+      updates,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (updates.stock !== undefined) {
-      if (updatedBook.stock === 0) {
-        console.error(`🚨 Book "${updatedBook.title}" is OUT OF STOCK!`);
-      } else if (updatedBook.stock <= (updatedBook.lowStockThreshold || 5)) {
+      if (updatedInventory.stock === 0) {
         console.error(
-          `⚠️ Book "${updatedBook.title}" is LOW ON STOCK: ${updatedBook.stock}`
+          `🚨 Inventory "${updatedInventory.title}" is OUT OF STOCK!`
+        );
+      } else if (
+        updatedInventory.stock <= (updatedInventory.lowStockThreshold || 5)
+      ) {
+        console.error(
+          `⚠️ Inventory "${updatedInventory.title}" is LOW ON STOCK: ${updatedInventory.stock}`
         );
       }
     }
 
     res.status(201).json({
       success: true,
-      message: "Book updated successfully",
-      book: updatedBook,
+      message: "Inventory updated successfully",
+      inventory: updatedInventory,
     });
   } catch (error) {
     if (error.code === 11000 && error.keyPattern?.isbn) {
       return res.status(409).json({
         success: false,
-        message: "Book with this ISBN already exists",
+        message: "Inventory with this ISBN already exists",
       });
     }
 
-    console.error("❌ Error updating book:", error);
+    console.error("❌ Error updating inventory:", error);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -323,54 +331,54 @@ exports.updateBook = async (req, res) => {
 };
 
 /**
- * @description Controller to delete a book by ID
- * @route DELETE api/inventory/book/delete-book/:bookId
+ * @description Controller to delete an inventory item by ID
+ * @route DELETE api/inventory/delete-inventory/:inventoryId
  * @access Private (Super Admin, Seller)
  */
-exports.deleteBook = async (req, res) => {
+exports.deleteInventory = async (req, res) => {
   try {
     if (req.user.role !== "SUPERADMIN" && req.user.role !== "SELLER") {
       return res.status(403).json({
         success: false,
         message:
-          "Unauthorized! Only Super Admins and Sellers can delete books.",
+          "Unauthorized! Only Super Admins and Sellers can delete inventory.",
       });
     }
 
-    const { bookId } = req.params;
+    const { inventoryId } = req.params;
 
-    const book = await Book.findById(bookId);
-    if (!book) {
+    const inventory = await Inventory.findById(inventoryId);
+    if (!inventory) {
       return res
         .status(404)
-        .json({ success: false, message: "Book not found!" });
+        .json({ success: false, message: "Inventory not found!" });
     }
 
-    if (book.bookCover) {
+    if (inventory.bookCover) {
       await cloudinaryUpload.deleteFromCloudinary(
-        book.bookCover,
+        inventory.bookCover,
         "LibrisVault/bookCover"
       );
     }
 
-    await Book.findByIdAndDelete(bookId);
+    await Inventory.findByIdAndDelete(inventoryId);
 
     res.status(201).json({
       success: true,
-      message: "Book deleted successfully!",
+      message: "Inventory deleted successfully!",
     });
   } catch (error) {
-    console.error("❌ Error Deleting Book:", error);
+    console.error("❌ Error Deleting Inventory:", error);
     return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
 /**
- * @description Controller to add a new book using ISBN
- * @route POST api/inventory/book/upload-book-by-isbn
+ * @description Controller to add a new inventory item using ISBN
+ * @route POST api/inventory/upload-by-isbn
  * @access Private (Seller)
  */
-exports.uploadBookByISBN = async (req, res) => {
+exports.uploadInventoryByISBN = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -383,17 +391,19 @@ exports.uploadBookByISBN = async (req, res) => {
         .json({ success: false, message: "ISBN number is required" });
     }
 
-    const existingBook = await Book.findOne({ isbn }).session(session);
-    if (existingBook) {
+    const existingInventory = await Inventory.findOne({ isbn }).session(
+      session
+    );
+    if (existingInventory) {
       await session.abortTransaction();
       session.endSession();
       return res.status(409).json({
         success: false,
-        message: "Book with this ISBN already exists",
+        message: "Inventory with this ISBN already exists",
       });
     }
 
-    let bookData = {};
+    let itemData = {};
     let sourceUsed = "none";
 
     const openLibrary = axios
@@ -413,51 +423,51 @@ exports.uploadBookByISBN = async (req, res) => {
     ]);
 
     if (olRes && olRes.data && olRes.data.title) {
-      bookData = olRes.data;
+      itemData = olRes.data;
       sourceUsed = "Open Library";
     }
     if (
-      (!bookData.title || !bookData.authors) &&
+      (!itemData.title || !itemData.authors) &&
       googleRes &&
       googleRes.data.items &&
       googleRes.data.items.length > 0
     ) {
       const info = googleRes.data.items[0].volumeInfo;
-      bookData = {
-        ...bookData,
-        title: bookData.title || info.title,
-        description: bookData.description || info.description,
-        publish_date: bookData.publish_date || info.publishedDate,
+      itemData = {
+        ...itemData,
+        title: itemData.title || info.title,
+        description: itemData.description || info.description,
+        publish_date: itemData.publish_date || info.publishedDate,
         publishers:
-          bookData.publishers || (info.publisher ? [info.publisher] : []),
-        number_of_pages: bookData.number_of_pages || info.pageCount,
-        authors: bookData.authors || info.authors,
-        language: bookData.language || info.language,
-        categories: bookData.categories || info.categories,
+          itemData.publishers || (info.publisher ? [info.publisher] : []),
+        number_of_pages: itemData.number_of_pages || info.pageCount,
+        authors: itemData.authors || info.authors,
+        language: itemData.language || info.language,
+        categories: itemData.categories || info.categories,
       };
       sourceUsed =
         sourceUsed === "none" ? "Google Books" : sourceUsed + "+Google";
     }
     if (
-      (!bookData.title || !bookData.authors) &&
+      (!itemData.title || !itemData.authors) &&
       olSearchRes && // Changed from olSearch to olSearchRes
       olSearchRes.data && // Added check for data
       olSearchRes.data.docs && // Added check for docs
       olSearchRes.data.docs.length > 0
     ) {
       const doc = olSearchRes.data.docs[0];
-      bookData = {
-        ...bookData,
-        title: bookData.title || doc.title,
+      itemData = {
+        ...itemData,
+        title: itemData.title || doc.title,
         publish_date:
-          bookData.publish_date ||
+          itemData.publish_date ||
           (doc.first_publish_year ? doc.first_publish_year.toString() : ""),
         publishers:
-          bookData.publishers || (doc.publisher ? [doc.publisher[0]] : []),
-        number_of_pages: bookData.number_of_pages || doc.number_of_pages,
-        authors: bookData.authors || doc.author_name,
-        language: bookData.language || doc.language,
-        subjects: bookData.subjects || doc.subject,
+          itemData.publishers || (doc.publisher ? [doc.publisher[0]] : []),
+        number_of_pages: itemData.number_of_pages || doc.number_of_pages,
+        authors: itemData.authors || doc.author_name,
+        language: itemData.language || doc.language,
+        subjects: itemData.subjects || doc.subject,
       };
       sourceUsed =
         sourceUsed === "none"
@@ -465,11 +475,11 @@ exports.uploadBookByISBN = async (req, res) => {
           : sourceUsed + "+OpenSearch";
     }
 
-    const title = bookData.title || "Unknown Title";
+    const title = itemData.title || "Unknown Title";
 
     let author = "Unknown Author";
-    if (bookData.authors && bookData.authors.length > 0) {
-      const firstAuthor = bookData.authors[0];
+    if (itemData.authors && itemData.authors.length > 0) {
+      const firstAuthor = itemData.authors[0];
       if (typeof firstAuthor === "object") {
         if (firstAuthor.name) {
           author = firstAuthor.name;
@@ -486,28 +496,28 @@ exports.uploadBookByISBN = async (req, res) => {
       } else if (typeof firstAuthor === "string") {
         author = cleanAuthorName(firstAuthor);
       }
-    } else if (bookData.by_statement) {
-      author = cleanAuthorName(bookData.by_statement);
-    } else if (bookData.author_name && bookData.author_name.length > 0) {
-      author = cleanAuthorName(bookData.author_name[0]);
-    } else if (bookData.contributors && bookData.contributors.length > 0) {
-      const firstContributor = bookData.contributors[0];
+    } else if (itemData.by_statement) {
+      author = cleanAuthorName(itemData.by_statement);
+    } else if (itemData.author_name && itemData.author_name.length > 0) {
+      author = cleanAuthorName(itemData.author_name[0]);
+    } else if (itemData.contributors && itemData.contributors.length > 0) {
+      const firstContributor = itemData.contributors[0];
       author = cleanAuthorName(
         typeof firstContributor === "object"
           ? firstContributor.name
           : firstContributor
       );
-    } else if (bookData.creator) {
-      if (Array.isArray(bookData.creator)) {
+    } else if (itemData.creator) {
+      if (Array.isArray(itemData.creator)) {
         author = cleanAuthorName(
-          typeof bookData.creator[0] === "object"
-            ? bookData.creator[0].name
-            : bookData.creator[0]
+          typeof itemData.creator[0] === "object"
+            ? itemData.creator[0].name
+            : itemData.creator[0]
         );
-      } else if (typeof bookData.creator === "object") {
-        author = cleanAuthorName(bookData.creator.name || "Unknown Author");
+      } else if (typeof itemData.creator === "object") {
+        author = cleanAuthorName(itemData.creator.name || "Unknown Author");
       } else {
-        author = cleanAuthorName(bookData.creator);
+        author = cleanAuthorName(itemData.creator);
       }
     }
     if (typeof author !== "string") {
@@ -527,56 +537,56 @@ exports.uploadBookByISBN = async (req, res) => {
     }
 
     let description = "No description available";
-    if (bookData.description) {
+    if (itemData.description) {
       if (
-        typeof bookData.description === "object" &&
-        bookData.description.value
+        typeof itemData.description === "object" &&
+        itemData.description.value
       ) {
-        description = bookData.description.value;
-      } else if (typeof bookData.description === "string") {
-        description = bookData.description;
+        description = itemData.description.value;
+      } else if (typeof itemData.description === "string") {
+        description = itemData.description;
       }
     }
 
     const publicationYear =
-      bookData.publish_date ||
-      bookData.publishedDate ||
-      bookData.first_publish_year ||
+      itemData.publish_date ||
+      itemData.publishedDate ||
+      itemData.first_publish_year ||
       "Unknown";
     const publisher =
-      (bookData.publishers && bookData.publishers[0]) ||
-      bookData.publisher ||
+      (itemData.publishers && itemData.publishers[0]) ||
+      itemData.publisher ||
       "Unknown Publisher";
-    const pages = bookData.number_of_pages || bookData.pages || 0;
-    const bookLanguage =
-      bookData.language ||
+    const pages = itemData.number_of_pages || itemData.pages || 0;
+    const itemLanguage =
+      itemData.language ||
       language ||
-      (bookData.language && bookData.language[0]) ||
+      (itemData.language && itemData.language[0]) ||
       "ENGLISH";
 
     let genres = ["General"];
     if (genre) {
       genres = genre.split(",").map((g) => g.trim());
-    } else if (bookData.genres && bookData.genres.length > 0) {
-      genres = bookData.genres;
-    } else if (bookData.categories && bookData.categories.length > 0) {
-      genres = bookData.categories;
-    } else if (bookData.subjects && bookData.subjects.length > 0) {
-      genres = bookData.subjects.slice(0, 3);
+    } else if (itemData.genres && itemData.genres.length > 0) {
+      genres = itemData.genres;
+    } else if (itemData.categories && itemData.categories.length > 0) {
+      genres = itemData.categories;
+    } else if (itemData.subjects && itemData.subjects.length > 0) {
+      genres = itemData.subjects.slice(0, 3);
     }
 
-    if (!req.files || !req.files.bookCover) {
+    if (!req.files || !req.files.itemCover) {
       await session.abortTransaction();
       session.endSession();
       return res
         .status(400)
-        .json({ success: false, message: "Book cover image is required" });
+        .json({ success: false, message: "Inventory cover image is required" });
     }
 
-    const bookCoverFile = req.files.bookCover[0];
+    const itemCoverFile = req.files.itemCover[0];
     const cloudinaryResult = await cloudinaryUpload.uploadToCloudinary(
-      bookCoverFile,
-      "bookCover"
+      itemCoverFile,
+      "itemCover"
     );
 
     const languageMap = {
@@ -589,14 +599,14 @@ exports.uploadBookByISBN = async (req, res) => {
       return languageMap[lower] || "ENGLISH";
     }
 
-    const book = new Book({
+    const inventory = new Inventory({
       bookCover: cloudinaryResult.url,
       title,
       author: author.substring(0, 255),
       price: parseFloat(price) || 0,
       stock: parseInt(stock) || 0,
       isbn,
-      language: normalizeLanguage(bookLanguage),
+      language: normalizeLanguage(itemLanguage),
       description,
       genre: genres,
       publicationYear: publicationYear.toString(),
@@ -606,7 +616,7 @@ exports.uploadBookByISBN = async (req, res) => {
       dataSource: sourceUsed,
     });
 
-    await book.save({ session });
+    await inventory.save({ session });
     await Seller.updateOne(
       { _id: req.user.id, inventory: null },
       { $set: { inventory: [] } },
@@ -614,7 +624,7 @@ exports.uploadBookByISBN = async (req, res) => {
     );
     await Seller.findByIdAndUpdate(
       req.user.id,
-      { $push: { inventory: book._id } },
+      { $push: { inventory: inventory._id } },
       { session, new: true }
     );
 
@@ -623,13 +633,13 @@ exports.uploadBookByISBN = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Book uploaded successfully",
-      book,
+      message: "Inventory uploaded successfully",
+      inventory,
     });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.error("❌ Error uploading book by ISBN:", error);
+    console.error("❌ Error uploading inventory by ISBN:", error);
     return res
       .status(500)
       .json({ success: false, message: "Server Error", error: error.message });

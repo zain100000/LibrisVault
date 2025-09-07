@@ -70,7 +70,7 @@ const SellerSchema = new mongoose.Schema(
     inventory: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Book",
+        ref: "Inventory",
       },
     ],
 
